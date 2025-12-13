@@ -1,4 +1,4 @@
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   deleteDoc,
@@ -7,7 +7,7 @@ import {
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { compressAndConvertToBase64 } from "@/lib/utils/imageUtils";
 
 export const createNewCategory = async ({ data, image }) => {
   if (!image) {
@@ -20,9 +20,9 @@ export const createNewCategory = async ({ data, image }) => {
     throw new Error("Slug is required");
   }
   const newId = doc(collection(db, `ids`)).id;
-  const imageRef = ref(storage, `categories/${newId}`);
-  await uploadBytes(imageRef, image);
-  const imageURL = await getDownloadURL(imageRef);
+  
+  // Convert image to base64
+  const imageURL = await compressAndConvertToBase64(image, 400, 0.8);
 
   await setDoc(doc(db, `categories/${newId}`), {
     ...data,
@@ -47,9 +47,8 @@ export const updateCategory = async ({ data, image }) => {
   let imageURL = data?.imageURL;
 
   if (image) {
-    const imageRef = ref(storage, `categories/${id}`);
-    await uploadBytes(imageRef, image);
-    imageURL = await getDownloadURL(imageRef);
+    // Convert new image to base64
+    imageURL = await compressAndConvertToBase64(image, 400, 0.8);
   }
 
   await updateDoc(doc(db, `categories/${id}`), {

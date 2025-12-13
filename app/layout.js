@@ -17,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "E Commerce Website",
-  description: "Create By Docs Readers",
+  title: "Score 100 Books - Question Bank for Class 9-12 | CBSE & MPBSE",
+  description: "Score 100 series of question bank books for CBSE & MPBSE Board Exams. Previous Year Papers, Solved PYQs, Revision Notes, Mindmaps for Class 9, 10, 11 & 12. Mathematics, Science, Social Science, English & Hindi.",
 };
 
 export default function RootLayout({ children }) {

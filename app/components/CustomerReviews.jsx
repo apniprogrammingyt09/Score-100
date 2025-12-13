@@ -3,35 +3,35 @@ import { Rating } from "@mui/material";
 export default function CustomerReviews() {
   const list = [
     {
-      name: "Penny albritoon",
+      name: "Rahul Sharma - Class 10",
       message:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-      rating: 4.5,
-      imageLink:
-        "https://emilly-store1.myshopify.com/cdn/shop/files/bakery-testi-1.jpg?v=1721992196&width=512",
-    },
-    {
-      name: "Oscar Nommanee",
-      message:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+        "Score 100 books helped me score 95+ in my board exams! The PYQs and revision notes are amazing. Highly recommended for CBSE students.",
       rating: 5,
       imageLink:
-        "https://emilly-store1.myshopify.com/cdn/shop/files/bakery-testi-5.jpg?v=1721992196&width=512",
+        "https://randomuser.me/api/portraits/men/32.jpg",
     },
     {
-      name: "Emma Watsom",
+      name: "Priya Verma - Class 12",
       message:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+        "Best question bank for board preparation. The mindmaps and cheat sheets made revision so easy. Scored 98 in Mathematics!",
+      rating: 5,
+      imageLink:
+        "https://randomuser.me/api/portraits/women/44.jpg",
+    },
+    {
+      name: "Amit Patel - Class 11",
+      message:
+        "Excellent collection of previous year papers with detailed solutions. The competency-based questions are very helpful.",
       rating: 4.5,
       imageLink:
-        "https://emilly-store1.myshopify.com/cdn/shop/files/bakery-testi-6.jpg?v=1721992197&width=512",
+        "https://randomuser.me/api/portraits/men/67.jpg",
     },
   ];
   return (
     <section className="flex justify-center">
       <div className="w-full p-5 md:max-w-[900px] flex flex-col gap-3">
         <h1 className="text-center font-semibold text-xl">
-          Our customers love
+          What Our Students Say
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {list?.map((item) => {

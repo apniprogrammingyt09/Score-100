@@ -64,7 +64,7 @@ export default function Page() {
       setData(null);
       setFeatureImage(null);
       setImageList([]);
-      toast.success("Product is successfully Created!");
+      toast.success("Book added successfully!");
     } catch (error) {
       console.log(error?.message);
       toast.error(error?.message);
@@ -83,7 +83,7 @@ export default function Page() {
       setData(null);
       setFeatureImage(null);
       setImageList([]);
-      toast.success("Product is successfully Updated!");
+      toast.success("Book updated successfully!");
       router.push(`/admin/products`);
     } catch (error) {
       console.log(error?.message);
@@ -106,10 +106,10 @@ export default function Page() {
     >
       <div className="flex justify-between w-full items-center">
         <h1 className="font-semibold">
-          {id ? "Update Product" : "Create New Product"}
+          {id ? "Update Book" : "Add New Book"}
         </h1>
         <Button isLoading={isLoading} isDisabled={isLoading} type="submit">
-          {id ? "Update" : "Create"}
+          {id ? "Update" : "Add Book"}
         </Button>
       </div>
       <div className="flex flex-col md:flex-row gap-5">

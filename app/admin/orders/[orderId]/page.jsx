@@ -35,7 +35,7 @@ export default function Page() {
       <div className="flex flex-col gap-2 border rounded-lg p-4 bg-white">
         <div className="flex flex-col gap-2">
           <div className="flex gap-3">
-            <h3 className="bg-blue-100 text-blue-500 text-xs rounded-lg px-2 py-1 uppercase">
+            <h3 className="bg-violet-100 text-violet-900 text-xs rounded-lg px-2 py-1 uppercase">
               {order?.paymentMode}
             </h3>
             <h3 className="bg-green-100 text-green-500 text-xs rounded-lg px-2 py-1 uppercase">

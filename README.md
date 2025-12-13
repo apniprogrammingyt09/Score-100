@@ -1,21 +1,20 @@
-# Full Stack E-Commerce Website
+# Score 100 Books - Question Bank Store
 
-This is a Full Stack E-Commerce Website built with **Next.js 14**, **Tailwind CSS**, **Firebase**, **Stripe**, and **Algolia**.
+This is a Full Stack E-Commerce Website for Score 100 Question Bank Books built with **Next.js 14**, **Tailwind CSS**, and **Firebase**.
 
 ## Features
 
 - User authentication with Firebase
-- Product browsing and searching with Algolia
+- Product browsing and searching
 - Shopping cart functionality
-- Secure payment processing with Stripe
+- Cash on Delivery checkout
 - Admin panel for managing products, orders, and users
 
 ## Technologies Used
 
 - **Frontend**: Next.js 14, Tailwind CSS
 - **Backend**: Firebase (Firestore, Authentication)
-- **Payment**: Stripe
-- **Search**: Algolia
+- **Search**: Firestore-based search
 
 ## Installation
 
@@ -46,9 +45,6 @@ This is a Full Stack E-Commerce Website built with **Next.js 14**, **Tailwind CS
    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=""
    
    NEXT_PUBLIC_DOMAIN=""
-   
-   NEXT_PUBLIC_ALGOLIA_APP_ID=""
-   NEXT_PUBLIC_ALGOLIA_APP_KEY=""
    
    NEXT_PUBLIC_FIREBASE_SERVICE_ACCOUNT_KEYS='{}'
    ```

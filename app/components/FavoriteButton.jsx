@@ -50,6 +50,7 @@ export default function FavoriteButton({ productId }) {
       className="rounded-full"
       isIconOnly
       size="sm"
+      aria-label={isLiked ? "Remove from favorites" : "Add to favorites"}
     >
       {!isLiked && <FavoriteBorderOutlinedIcon fontSize="small" />}
       {isLiked && <FavoriteIcon fontSize="small" />}

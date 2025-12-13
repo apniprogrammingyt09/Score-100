@@ -44,21 +44,23 @@ export default function Brands({ brands }) {
 
   return (
     <div className="flex flex-col gap-8 justify-center overflow-hidden md:p-10 p-5">
+      <h1 className="text-center font-semibold text-xl">Our Boards</h1>
       <Slider {...settings}>
         {(brands?.length <= 2
           ? [...brands, ...brands, ...brands]
           : brands
-        )?.map((brand) => {
+        )?.map((brand, index) => {
           return (
-            <div className="px-2">
+            <div className="px-2" key={`${brand?.id}-${index}`}>
               <div className="flex flex-col gap-2 items-center justify-center">
-                <div className="h-20 rounded-lg md:p-5 p-2 border overflow-hidden">
+                <div className="h-28 w-full rounded-lg p-3 border flex items-center justify-center">
                   <img
-                    className="h-full w-full object-cover"
+                    className="h-full w-auto object-contain"
                     src={brand?.imageURL}
-                    alt=""
+                    alt={brand?.name}
                   />
                 </div>
+                <h3 className="text-sm font-medium text-center">{brand?.name}</h3>
               </div>
             </div>
           );

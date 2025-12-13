@@ -206,7 +206,7 @@ export default function Form() {
 function ProductCard({ productId, setData }) {
   const { data: product } = useProduct({ productId: productId });
   return (
-    <div className="flex gap-3 bg-blue-500 text-white px-4 py-1 rounded-full text-sm">
+    <div className="flex gap-3 bg-violet-900 text-white px-4 py-1 rounded-full text-sm">
       <h2>{product?.title}</h2>
       <button
         onClick={(e) => {

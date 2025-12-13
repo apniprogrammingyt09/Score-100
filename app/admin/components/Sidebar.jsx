@@ -26,17 +26,17 @@ export default function Sidebar() {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      name: "Products",
+      name: "Books",
       link: "/admin/products",
       icon: <PackageOpen className="h-5 w-5" />,
     },
     {
-      name: "Categories",
+      name: "Classes",
       link: "/admin/categories",
       icon: <Layers2 className="h-5 w-5" />,
     },
     {
-      name: "Brands",
+      name: "Boards",
       link: "/admin/brands",
       icon: <Cat className="h-5 w-5" />,
     },
@@ -56,7 +56,7 @@ export default function Sidebar() {
       icon: <Star className="h-5 w-5" />,
     },
     {
-      name: "Collections",
+      name: "Subjects",
       link: "/admin/collections",
       icon: <LibraryBig className="h-5 w-5" />,
     },

@@ -5,9 +5,10 @@ import { useProduct } from "@/lib/firestore/products/read";
 import { useUser } from "@/lib/firestore/user/read";
 import { updateCarts } from "@/lib/firestore/user/write";
 import { Button, CircularProgress } from "@nextui-org/react";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, X, Book, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Page() {
   const { user } = useAuth();
@@ -37,13 +38,15 @@ export default function Page() {
           return <ProductItem item={item} key={item?.id} />;
         })}
       </div>
-      <div>
-        <Link href={`/checkout?type=cart`}>
-          <button className="bg-blue-500 px-5 py-2 text-sm rounded-lg text-white">
-            Checkout
-          </button>
-        </Link>
-      </div>
+      {data?.carts?.length > 0 && (
+        <div>
+          <Link href={`/checkout?type=cart`}>
+            <button className="bg-violet-900 px-5 py-2 text-sm rounded-lg text-white">
+              Checkout
+            </button>
+          </Link>
+        </div>
+      )}
     </main>
   );
 }
@@ -55,7 +58,19 @@ function ProductItem({ item }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: product } = useProduct({ productId: item?.id });
+  // Check if this is an eBook item
+  const isEbook = item?.id?.endsWith("-ebook");
+  const baseProductId = item?.id?.replace(/-ebook$/, "");
+  
+  const { data: product } = useProduct({ productId: baseProductId });
+
+  // Get correct price based on format
+  const price = isEbook 
+    ? (product?.ebookSalePrice || product?.salePrice)
+    : product?.salePrice;
+  const originalPrice = isEbook 
+    ? (product?.ebookPrice || product?.price)
+    : product?.price;
 
   const handleRemove = async () => {
     if (!confirm("Are you sure?")) return;
@@ -91,19 +106,35 @@ function ProductItem({ item }) {
 
   return (
     <div className="flex gap-3 items-center border px-3 py-3 rounded-xl">
-      <div className="h-14 w-14 p-1">
+      <div className="h-14 w-14 p-1 relative">
         <img
           className="w-full h-full object-cover rounded-lg"
           src={product?.featureImageURL}
           alt=""
         />
+        {isEbook ? (
+          <div className="absolute -top-1 -right-1 bg-emerald-500 rounded-full p-1">
+            <Smartphone size={10} className="text-white" />
+          </div>
+        ) : (
+          <div className="absolute -top-1 -right-1 bg-indigo-500 rounded-full p-1">
+            <Book size={10} className="text-white" />
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-1 w-full">
         <h1 className="text-sm font-semibold">{product?.title}</h1>
+        <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+          isEbook 
+            ? "bg-emerald-100 text-emerald-700" 
+            : "bg-indigo-100 text-indigo-700"
+        }`}>
+          {isEbook ? "eBook (PDF)" : "Hard Copy"}
+        </span>
         <h1 className="text-green-500 text-sm">
-          ₹ {product?.salePrice}{" "}
+          ₹ {price}{" "}
           <span className="line-through text-xs text-gray-500">
-            ₹ {product?.price}
+            ₹ {originalPrice}
           </span>
         </h1>
         <div className="flex text-xs items-center gap-2">

@@ -157,7 +157,7 @@ function Row({ item, index }) {
       </td>
       <td className="border-y bg-white px-3 py-2">
         <div className="flex">
-          <h3 className="bg-blue-100 text-blue-500 text-xs rounded-lg px-2 py-1 uppercase">
+          <h3 className="bg-violet-100 text-violet-900 text-xs rounded-lg px-2 py-1 uppercase">
             {item?.paymentMode}
           </h3>
         </div>

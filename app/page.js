@@ -3,6 +3,7 @@ import {
   getProducts,
 } from "@/lib/firestore/products/read_server";
 import Header from "./components/Header";
+import Hero from "./components/Hero";
 import FeaturedProductSlider from "./components/Sliders";
 import Collections from "./components/Collections";
 import { getCollections } from "@/lib/firestore/collections/read_server";
@@ -12,6 +13,7 @@ import ProductsGridView from "./components/Products";
 import CustomerReviews from "./components/CustomerReviews";
 import Brands from "./components/Brands";
 import { getBrands } from "@/lib/firestore/brands/read_server";
+import CTA from "./components/CTA";
 import Footer from "./components/Footer";
 
 export const dynamic = 'force-dynamic'
@@ -29,12 +31,14 @@ export default async function Home() {
   return (
     <main className="w-screen h-screen overflow-x-hidden overflow-y-auto">
       <Header />
+      <Hero />
       <FeaturedProductSlider featuredProducts={featuredProducts} />
       <Collections collections={collections} />
       <Categories categories={categories} />
       <ProductsGridView products={products} />
       <CustomerReviews />
       <Brands brands={brands} />
+      <CTA />
       <Footer />
     </main>
   );

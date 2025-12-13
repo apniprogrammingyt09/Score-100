@@ -33,7 +33,7 @@ export default function SearchBox() {
         onChange={(e) => {
           setQuery(e.target.value);
         }}
-        placeholder="Enter Product Name ..."
+        placeholder="Search for books..."
         type="text"
         className="border px-5 py-2 rounded-xl bg-white focus:outline-none"
         required

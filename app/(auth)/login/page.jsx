@@ -93,12 +93,12 @@ export default function Page() {
           </form>
           <div className="flex justify-between">
             <Link href={`/sign-up`}>
-              <button className="font-semibold text-sm text-blue-700">
+              <button className="font-semibold text-sm text-violet-700">
                 New? Create Account
               </button>
             </Link>
             <Link href={`/forget-password`}>
-              <button className="font-semibold text-sm text-blue-700">
+              <button className="font-semibold text-sm text-violet-700">
                 Forget Password?
               </button>
             </Link>

@@ -12,8 +12,12 @@ export default function Header() {
       link: "/",
     },
     {
-      name: "About",
-      link: "/about-us",
+      name: "CBSE Books",
+      link: "/boards/CBSE",
+    },
+    {
+      name: "MPBSE Books",
+      link: "/boards/MPBoard",
     },
     {
       name: "Contact",
@@ -28,7 +32,7 @@ export default function Header() {
       <div className="hidden md:flex gap-2 items-center font-semibold">
         {menuList?.map((item) => {
           return (
-            <Link href={item?.link}>
+            <Link href={item?.link} key={item?.name}>
               <button className="text-sm px-4 py-2 rounded-lg hover:bg-gray-50">
                 {item?.name}
               </button>
@@ -42,7 +46,8 @@ export default function Header() {
         </AuthContextProvider>
         <Link href={`/search`}>
           <button
-            title="Search Products"
+            title="Search Books"
+            aria-label="Search Books"
             className="h-8 w-8 flex justify-center items-center rounded-full hover:bg-gray-50"
           >
             <Search size={14} />
@@ -54,6 +59,7 @@ export default function Header() {
         <Link href={`/account`}>
           <button
             title="My Account"
+            aria-label="My Account"
             className="h-8 w-8 flex justify-center items-center rounded-full hover:bg-gray-50"
           >
             <UserCircle2 size={14} />

@@ -36,12 +36,15 @@ export function useOrder({ id }) {
 
 export function useOrders({ uid }) {
   const { data, error } = useSWRSubscription(
-    ["orders", uid],
+    uid ? ["orders", uid] : null,
     ([path, uid], { next }) => {
+      if (!uid) {
+        next(null, []);
+        return () => {};
+      }
       const ref = query(
         collection(db, path),
-        where("uid", "==", uid),
-        orderBy("timestampCreate", "desc")
+        where("uid", "==", uid)
       );
       const unsub = onSnapshot(
         ref,
@@ -49,7 +52,7 @@ export function useOrders({ uid }) {
           next(
             null,
             snapshot.docs.length === 0
-              ? null
+              ? []
               : snapshot.docs.map((snap) => snap.data())
           ),
         (err) => next(err, null)
@@ -62,7 +65,7 @@ export function useOrders({ uid }) {
     console.log(error?.message);
   }
 
-  return { data, error: error?.message, isLoading: data === undefined };
+  return { data: data ?? [], error: error?.message, isLoading: uid && data === undefined };
 }
 
 export function useAllOrders({ pageLimit, lastSnapDoc }) {

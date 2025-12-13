@@ -1,4 +1,4 @@
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   deleteDoc,
@@ -6,7 +6,7 @@ import {
   setDoc,
   Timestamp,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { compressAndConvertToBase64 } from "@/lib/utils/imageUtils";
 
 export const createNewProduct = async ({ data, featureImage, imageList }) => {
   if (!data?.title) {
@@ -15,18 +15,21 @@ export const createNewProduct = async ({ data, featureImage, imageList }) => {
   if (!featureImage) {
     throw new Error("Feature Image is required");
   }
-  const featureImageRef = ref(storage, `products/${featureImage?.name}`);
-  await uploadBytes(featureImageRef, featureImage);
-  const featureImageURL = await getDownloadURL(featureImageRef);
+  if (!data?.brandIds || data?.brandIds?.length === 0) {
+    throw new Error("At least one Board must be selected");
+  }
+  
+  // Convert feature image to base64
+  const featureImageURL = await compressAndConvertToBase64(featureImage, 800, 0.7);
 
+  // Convert all images in imageList to base64
   let imageURLList = [];
-
   for (let i = 0; i < imageList?.length; i++) {
     const image = imageList[i];
-    const imageRef = ref(storage, `products/${image?.name}`);
-    await uploadBytes(imageRef, image);
-    const url = await getDownloadURL(imageRef);
-    imageURLList.push(url);
+    const base64 = await compressAndConvertToBase64(image, 800, 0.7);
+    if (base64) {
+      imageURLList.push(base64);
+    }
   }
 
   const newId = doc(collection(db, `ids`)).id;
@@ -47,23 +50,26 @@ export const updateProduct = async ({ data, featureImage, imageList }) => {
   if (!data?.id) {
     throw new Error("ID is required");
   }
+  if (!data?.brandIds || data?.brandIds?.length === 0) {
+    throw new Error("At least one Board must be selected");
+  }
 
   let featureImageURL = data?.featureImageURL ?? "";
 
   if (featureImage) {
-    const featureImageRef = ref(storage, `products/${featureImage?.name}`);
-    await uploadBytes(featureImageRef, featureImage);
-    featureImageURL = await getDownloadURL(featureImageRef);
+    // Convert new feature image to base64
+    featureImageURL = await compressAndConvertToBase64(featureImage, 800, 0.7);
   }
 
   let imageURLList = imageList?.length === 0 ? data?.imageList : [];
 
+  // Convert all new images to base64
   for (let i = 0; i < imageList?.length; i++) {
     const image = imageList[i];
-    const imageRef = ref(storage, `products/${image?.name}`);
-    await uploadBytes(imageRef, image);
-    const url = await getDownloadURL(imageRef);
-    imageURLList.push(url);
+    const base64 = await compressAndConvertToBase64(image, 800, 0.7);
+    if (base64) {
+      imageURLList.push(base64);
+    }
   }
 
   await setDoc(doc(db, `products/${data?.id}`), {

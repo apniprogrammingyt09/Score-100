@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Products - public read, admin write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Categories - public read, admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Collections - public read, admin write
+    match /collections/{collectionId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Brands - public read, admin write
+    match /brands/{brandId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Reviews - public read, authenticated write
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Orders - user can read/write their own orders
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Users - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Admins - only authenticated admins
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Customers - admin access
+    match /customers/{customerId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Favorites - user specific
+    match /favorites/{favoriteId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Cart - user specific
+    match /cart/{cartId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Catch-all for development (remove in production)
+    match /{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

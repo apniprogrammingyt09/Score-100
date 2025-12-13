@@ -165,7 +165,7 @@ function Row({ item, index }) {
       <td className="border-y bg-white px-3 py-2 whitespace-nowrap">
         {item?.title}{" "}
         {item?.isFeatured === true && (
-          <span className="ml-2 bg-gradient-to-tr from-blue-500 to-indigo-400 text-white text-[10px] rounded-full px-3 py-1">
+          <span className="ml-2 bg-gradient-to-tr from-violet-900 to-indigo-400 text-white text-[10px] rounded-full px-3 py-1">
             Featured
           </span>
         )}

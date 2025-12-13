@@ -106,7 +106,7 @@ export default function Page() {
           </form>
           <div className="flex justify-between">
             <Link href={`/login`}>
-              <button className="font-semibold text-sm text-blue-700">
+              <button className="font-semibold text-sm text-violet-700">
                 Already user? Sign In
               </button>
             </Link>

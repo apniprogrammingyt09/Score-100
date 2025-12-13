@@ -27,12 +27,12 @@ export default async function Page({ searchParams }) {
         <h1 className="text-2xl font-semibold">Your Payment Was Not Success</h1>
         <div className="flex items-center gap-4 text-sm">
           <Link href={"/"}>
-            <button className="text-blue-600 border border-blue-600 px-5 py-2 rounded-lg bg-white">
+            <button className="text-violet-600 border border-violet-600 px-5 py-2 rounded-lg bg-white">
               Shop
             </button>
           </Link>
           <Link href={checkout?.url}>
-            <button className="bg-blue-600 border px-5 py-2 rounded-lg text-white">
+            <button className="bg-violet-600 border px-5 py-2 rounded-lg text-white">
               Retry
             </button>
           </Link>

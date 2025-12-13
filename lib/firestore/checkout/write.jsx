@@ -1,6 +1,139 @@
 import { db } from "@/lib/firebase";
 import { collection, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 
+export const createRazorpayOrder = async ({ uid, products, address }) => {
+  // Calculate total amount based on format (eBook vs physical)
+  const totalAmount = products.reduce((total, item) => {
+    const isEbook = item?.format === "ebook";
+    const price = isEbook 
+      ? (item?.product?.ebookSalePrice || item?.product?.salePrice)
+      : item?.product?.salePrice;
+    return total + (price * (item?.quantity ?? 1));
+  }, 0);
+
+  const checkoutId = doc(collection(db, `ids`)).id;
+
+  // Create Razorpay order via API
+  const response = await fetch("/api/razorpay/create-order", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: totalAmount,
+      currency: "INR",
+      receipt: checkoutId,
+      notes: {
+        checkoutId,
+        uid,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to create Razorpay order");
+  }
+
+  const orderData = await response.json();
+
+  // Store checkout session in Firestore
+  const ref = doc(db, `users/${uid}/checkout_sessions/${checkoutId}`);
+
+  let line_items = [];
+
+  products.forEach((item) => {
+    const isEbook = item?.format === "ebook";
+    const price = isEbook 
+      ? (item?.product?.ebookSalePrice || item?.product?.salePrice)
+      : item?.product?.salePrice;
+    
+    // Get base product ID (remove -ebook suffix if present)
+    const baseProductId = item?.id?.replace(/-ebook$/, "");
+    
+    line_items.push({
+      productId: baseProductId,
+      format: item?.format || "physical",
+      name: item?.product?.title ?? "",
+      description: item?.product?.shortDescription ?? "",
+      image: item?.product?.featureImageURL ?? "",
+      price: price,
+      quantity: item?.quantity ?? 1,
+      ebookUrl: isEbook ? (item?.product?.ebookUrl || "") : null,
+    });
+  });
+
+  // Check if order contains eBooks
+  const hasEbooks = products.some((item) => item?.format === "ebook");
+  const hasPhysical = products.some((item) => item?.format !== "ebook");
+
+  await setDoc(ref, {
+    id: checkoutId,
+    razorpayOrderId: orderData.orderId,
+    amount: totalAmount,
+    currency: "INR",
+    line_items: line_items,
+    address: address,
+    uid: uid,
+    status: "pending",
+    hasEbooks: hasEbooks,
+    hasPhysical: hasPhysical,
+    createdAt: Timestamp.now(),
+  });
+
+  return {
+    checkoutId,
+    razorpayOrderId: orderData.orderId,
+    amount: totalAmount,
+    currency: "INR",
+  };
+};
+
+export const verifyRazorpayPayment = async ({
+  uid,
+  checkoutId,
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+}) => {
+  // Verify payment via API
+  const response = await fetch("/api/razorpay/verify-payment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || "Payment verification failed");
+  }
+
+  // Update checkout session with payment details
+  const ref = doc(db, `users/${uid}/checkout_sessions/${checkoutId}`);
+  await setDoc(
+    ref,
+    {
+      status: "paid",
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      paidAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
+
+  return {
+    success: true,
+    checkoutId,
+    paymentId: razorpay_payment_id,
+  };
+};
+
 export const createCheckoutAndGetURL = async ({ uid, products, address }) => {
   const checkoutId = doc(collection(db, `ids`)).id;
 

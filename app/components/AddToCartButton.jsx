@@ -10,7 +10,7 @@ import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useRouter } from "next/navigation";
 
-export default function AddToCartButton({ productId, type }) {
+export default function AddToCartButton({ productId, type, label }) {
   const { user } = useAuth();
   const { data } = useUser({ uid: user?.uid });
   const [isLoading, setIsLoading] = useState(false);
@@ -47,10 +47,25 @@ export default function AddToCartButton({ productId, type }) {
         isDisabled={isLoading}
         onClick={handlClick}
         variant="bordered"
-        className=""
+        className="text-indigo-900 border-indigo-900"
       >
-        {!isAdded && "Add To Cart"}
-        {isAdded && "Click To Remove"}
+        {!isAdded && (label || "Add To Cart")}
+        {isAdded && "Remove from Cart"}
+      </Button>
+    );
+  }
+
+  if (type === "ebook") {
+    return (
+      <Button
+        isLoading={isLoading}
+        isDisabled={isLoading}
+        onClick={handlClick}
+        variant="bordered"
+        className="text-emerald-700 border-emerald-600"
+      >
+        {!isAdded && (label || "Add eBook")}
+        {isAdded && "Remove eBook"}
       </Button>
     );
   }
@@ -62,13 +77,12 @@ export default function AddToCartButton({ productId, type }) {
         isDisabled={isLoading}
         onClick={handlClick}
         variant="bordered"
-        className=""
-        color="primary"
+        className="text-violet-900 border-violet-900"
         size="sm"
       >
         {!isAdded && <AddShoppingCartIcon className="text-xs" />}
         {isAdded && <ShoppingCartIcon className="text-xs" />}
-        {!isAdded && "Add To Cart"}
+        {!isAdded && (label || "Add To Cart")}
         {isAdded && "Click To Remove"}
       </Button>
     );
