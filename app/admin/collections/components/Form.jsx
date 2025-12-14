@@ -5,9 +5,7 @@ import {
   createNewCollection,
   updateCollection,
 } from "@/lib/firestore/collections/write";
-import { useProduct, useProducts } from "@/lib/firestore/products/read";
 import { Button } from "@nextui-org/react";
-import { X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -16,8 +14,6 @@ export default function Form() {
   const [data, setData] = useState(null);
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { data: products } = useProducts({ pageLimit: 2000 });
-
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -148,53 +144,7 @@ export default function Form() {
             className="border px-4 py-2 rounded-lg w-full focus:outline-none"
           />
         </div>
-        <div className="flex flex-wrap gap-3">
-          {data?.products?.map((productId) => {
-            return (
-              <ProductCard
-                productId={productId}
-                key={productId}
-                setData={setData}
-              />
-            );
-          })}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="collection-sub-title"
-            className="text-gray-500 text-sm"
-          >
-            Select Product <span className="text-red-500">*</span>{" "}
-          </label>
-          <select
-            id="collection-products"
-            name="collection-products"
-            type="text"
-            onChange={(e) => {
-              setData((prevData) => {
-                let list = [...(prevData?.products ?? [])];
-                list.push(e.target.value);
-                return {
-                  ...prevData,
-                  products: list,
-                };
-              });
-            }}
-            className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-          >
-            <option value="">Select Product</option>
-            {products?.map((item) => {
-              return (
-                <option
-                  disabled={data?.products?.includes(item?.id)}
-                  value={item?.id}
-                >
-                  {item?.title}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+
         <Button isLoading={isLoading} isDisabled={isLoading} type="submit">
           {id ? "Update" : "Create"}
         </Button>
@@ -203,26 +153,4 @@ export default function Form() {
   );
 }
 
-function ProductCard({ productId, setData }) {
-  const { data: product } = useProduct({ productId: productId });
-  return (
-    <div className="flex gap-3 bg-violet-900 text-white px-4 py-1 rounded-full text-sm">
-      <h2>{product?.title}</h2>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          setData((prevData) => {
-            let list = [...prevData?.products];
-            list = list?.filter((item) => item != productId);
-            return {
-              ...prevData,
-              products: list,
-            };
-          });
-        }}
-      >
-        <X size={12} />
-      </button>
-    </div>
-  );
-}
+

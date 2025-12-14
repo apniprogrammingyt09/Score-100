@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LibraryBig,
   LogOut,
+  Mail,
   PackageOpen,
   ShieldCheck,
   ShoppingCart,
@@ -59,6 +60,11 @@ export default function Sidebar() {
       name: "Subjects",
       link: "/admin/collections",
       icon: <LibraryBig className="h-5 w-5" />,
+    },
+    {
+      name: "Newsletter",
+      link: "/admin/newsletter",
+      icon: <Mail className="h-5 w-5" />,
     },
     {
       name: "Admins",

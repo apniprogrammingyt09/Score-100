@@ -5,9 +5,11 @@ import {
   createRazorpayOrder,
   verifyRazorpayPayment,
 } from "@/lib/firestore/checkout/write";
+import { useUserAddresses } from "@/lib/firestore/addresses/read";
+import { saveUserAddress } from "@/lib/firestore/addresses/write";
 import { Button } from "@nextui-org/react";
 import confetti from "canvas-confetti";
-import { CheckSquare2Icon, CreditCard, Book, Smartphone } from "lucide-react";
+import { CheckSquare2Icon, CreditCard, Book, Smartphone, Plus, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -29,25 +31,26 @@ const loadRazorpayScript = () => {
 
 export default function Checkout({ productList, hasEbooks, hasPhysical }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [address, setAddress] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [newAddress, setNewAddress] = useState(null);
   const [shippingRates, setShippingRates] = useState([]);
   const [selectedShipping, setSelectedShipping] = useState(null);
   const [loadingRates, setLoadingRates] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
+  const { data: savedAddresses } = useUserAddresses({ uid: user?.uid });
 
   useEffect(() => {
     loadRazorpayScript();
   }, []);
 
-  const handleAddress = (key, value) => {
-    setAddress({ ...(address ?? {}), [key]: value });
-    
-    // Auto-fill city and state when pincode is entered
-    if (key === 'pincode' && value.length === 6) {
-      fetchCityState(value);
+  useEffect(() => {
+    if (selectedAddress?.pincode && hasPhysical) {
+      console.log('Auto-fetching rates for selected address pincode:', selectedAddress.pincode);
+      fetchShippingRates(selectedAddress.pincode.toString());
     }
-  };
+  }, [selectedAddress, hasPhysical]);
 
   const fetchCityState = async (pincode) => {
     try {
@@ -55,25 +58,46 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
       const data = await response.json();
       
       if (data.success) {
-        setAddress(prev => ({
+        setNewAddress(prev => ({
           ...prev,
           city: data.city,
           state: data.state
         }));
-        
-        // Fetch shipping rates if physical products exist
-        if (hasPhysical) {
-          fetchShippingRates(pincode);
-        }
       }
     } catch (error) {
       console.error('Failed to fetch city/state:', error);
     }
   };
 
+  const getSelectedAddressData = () => {
+    if (hasPhysical) {
+      return selectedAddress || {
+        fullName: user?.displayName || '',
+        email: user?.email || '',
+        mobile: '',
+        addressLine1: '',
+        city: '',
+        state: '',
+        pincode: ''
+      };
+    }
+    return {
+      fullName: user?.displayName || '',
+      email: user?.email || ''
+    };
+  };
+
   const fetchShippingRates = async (deliveryPincode) => {
+    if (!deliveryPincode) return;
+    
     setLoadingRates(true);
+    setShippingRates([]);
+    setSelectedShipping(null);
+    
     try {
+      const pincode = deliveryPincode.toString().trim();
+      console.log('Fetching shipping rates for pincode:', pincode);
+      
       const totalWeight = productList?.reduce((total, item) => {
         return total + (item?.quantity * 0.5); // Assuming 0.5kg per book
       }, 0);
@@ -83,21 +107,24 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pickup_postcode: '452008',
-          delivery_postcode: deliveryPincode,
+          delivery_postcode: pincode,
           weight: totalWeight,
           cod: true
         })
       });
 
       const data = await response.json();
-      if (data.success) {
+      console.log('Shipping rates response:', data);
+      
+      if (data.success && data.rates?.length > 0) {
         setShippingRates(data.rates);
-        if (data.rates.length > 0) {
-          setSelectedShipping(data.rates[0]); // Select first option by default
-        }
+        setSelectedShipping(data.rates[0]); // Select first option by default
+      } else {
+        setShippingRates([]);
       }
     } catch (error) {
       console.error('Failed to fetch shipping rates:', error);
+      setShippingRates([]);
     } finally {
       setLoadingRates(false);
     }
@@ -125,7 +152,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
       const orderData = await createRazorpayOrder({
         uid: user?.uid,
         products: productList,
-        address: address,
+        address: getSelectedAddressData(),
       });
 
       const options = {
@@ -158,12 +185,12 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
           }
         },
         prefill: {
-          name: address?.fullName || "",
-          email: address?.email || user?.email || "",
-          contact: address?.mobile || "",
+          name: getSelectedAddressData()?.fullName || user?.displayName || "",
+          email: user?.email || "",
+          contact: getSelectedAddressData()?.mobile || "",
         },
         notes: {
-          address: `${address?.addressLine1}, ${address?.city}, ${address?.state} - ${address?.pincode}`,
+          address: hasPhysical ? `${selectedAddress?.addressLine1}, ${selectedAddress?.city}, ${selectedAddress?.state} - ${selectedAddress?.pincode}` : 'eBook Order',
         },
         theme: {
           color: "#312e81", // indigo-900
@@ -194,14 +221,14 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
         throw new Error("Price should be greater than 0");
       }
       
-      // Only require address for physical products
-      if (hasPhysical && (!address?.fullName || !address?.mobile || !address?.addressLine1)) {
-        throw new Error("Please Fill All Address Details for Physical Books");
+      // Validate address for physical products
+      if (hasPhysical && !selectedAddress) {
+        throw new Error("Please select a delivery address");
       }
       
-      // For eBook only orders, just need email
-      if (!hasPhysical && hasEbooks && !address?.email) {
-        throw new Error("Please provide your email for eBook delivery");
+      // Validate shipping option for physical products
+      if (hasPhysical && !selectedShipping) {
+        throw new Error("Please select a delivery option");
       }
 
       if (!productList || productList?.length === 0) {
@@ -217,154 +244,190 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
 
   return (
     <section className="flex flex-col md:flex-row gap-3">
-      {/* Address Section - Only show full form for physical products */}
+      {/* Address Section */}
       <section className="flex-1 flex flex-col gap-4 border rounded-xl p-4">
-        <h1 className="text-xl">
-          {hasPhysical ? "Shipping Address" : "Contact Information"}
-        </h1>
-        <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">
+            {hasPhysical ? "Delivery Address" : "Contact Info"}
+          </h1>
           {hasPhysical && (
-            <input
-              type="text"
-              id="full-name"
-              name="full-name"
-              placeholder="Full Name"
-              value={address?.fullName ?? ""}
-              onChange={(e) => {
-                handleAddress("fullName", e.target.value);
-              }}
-              className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-            />
-          )}
-          {hasPhysical && (
-            <input
-              type="tel"
-              id="mobile"
-              name="mobile"
-              placeholder="Mobile Number"
-              value={address?.mobile ?? ""}
-              onChange={(e) => {
-                handleAddress("mobile", e.target.value);
-              }}
-              className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-            />
-          )}
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Email (for order confirmation & eBook delivery)"
-            value={address?.email ?? ""}
-            onChange={(e) => {
-              handleAddress("email", e.target.value);
-            }}
-            className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-          />
-          {hasPhysical && (
-            <>
-              <input
-                type="text"
-                id="address-line-1"
-                name="address-line-1"
-                placeholder="Enter Address Line 1"
-                value={address?.addressLine1 ?? ""}
-                onChange={(e) => {
-                  handleAddress("addressLine1", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-              <input
-                type="text"
-                id="address-line-2"
-                name="address-line-2"
-                placeholder="Enter Address Line 2"
-                value={address?.addressLine2 ?? ""}
-                onChange={(e) => {
-                  handleAddress("addressLine2", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-              <input
-                type="number"
-                id="pincode"
-                name="pincode"
-                placeholder="Enter Pincode"
-                value={address?.pincode ?? ""}
-                onChange={(e) => {
-                  handleAddress("pincode", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-              <input
-                type="text"
-                id="city"
-                name="city"
-                placeholder="Enter City"
-                value={address?.city ?? ""}
-                onChange={(e) => {
-                  handleAddress("city", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-              <input
-                type="text"
-                id="state"
-                name="state"
-                placeholder="Enter State"
-                value={address?.state ?? ""}
-                onChange={(e) => {
-                  handleAddress("state", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-              <textarea
-                type="text"
-                id="delivery-notes"
-                name="delivery-notes"
-                placeholder="Notes about your order, e.g special notes for delivery"
-                value={address?.orderNote ?? ""}
-                onChange={(e) => {
-                  handleAddress("orderNote", e.target.value);
-                }}
-                className="border px-4 py-2 rounded-lg w-full focus:outline-none"
-              />
-            </>
-          )}
-          {!hasPhysical && hasEbooks && (
-            <p className="text-sm text-gray-500">
-              Your eBook download link will be sent to this email after payment.
-            </p>
+            <Button
+              size="sm"
+              variant="bordered"
+              startContent={<Plus size={16} />}
+              onClick={() => setShowAddressForm(!showAddressForm)}
+            >
+              Add Address
+            </Button>
           )}
         </div>
-        
-        {/* Shipping Options */}
-        {hasPhysical && address?.pincode?.length === 6 && (
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">Shipping Options</h3>
-            {loadingRates ? (
-              <div className="text-sm text-gray-500">Loading shipping rates...</div>
-            ) : shippingRates.length > 0 ? (
+
+        {/* User Info */}
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-medium">{user?.displayName || 'User'}</span>
+            <span className="text-gray-500">•</span>
+            <span className="text-gray-600">{user?.email}</span>
+          </div>
+        </div>
+
+        {hasPhysical ? (
+          <div className="space-y-3">
+            {/* Saved Addresses */}
+            {savedAddresses?.length > 0 && (
               <div className="space-y-2">
-                {shippingRates.slice(0, 3).map((rate, index) => (
-                  <label key={index} className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50">
+                <h3 className="font-medium text-gray-700">Saved Addresses</h3>
+                {savedAddresses.map((addr) => (
+                  <label key={addr.id} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                     <input
                       type="radio"
-                      name="shipping"
-                      checked={selectedShipping?.courier_company_id === rate.courier_company_id}
-                      onChange={() => setSelectedShipping(rate)}
+                      name="address"
+                      checked={selectedAddress?.id === addr.id}
+                      onChange={() => {
+                        setSelectedAddress(addr);
+                        if (addr.pincode) {
+                          console.log('Fetching rates for pincode:', addr.pincode);
+                          fetchShippingRates(addr.pincode.toString());
+                        }
+                      }}
+                      className="mt-1"
                     />
                     <div className="flex-1">
-                      <div className="font-medium">{rate.courier_name}</div>
-                      <div className="text-sm text-gray-500">
-                        ₹{rate.rate} • {rate.estimated_delivery_days} days
+                      <div className="font-medium">{addr.fullName}</div>
+                      <div className="text-sm text-gray-600">
+                        {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
                       </div>
+                      <div className="text-sm text-gray-500">{addr.mobile}</div>
                     </div>
                   </label>
                 ))}
               </div>
-            ) : address?.pincode && (
-              <div className="text-sm text-red-500">No shipping available to this pincode</div>
             )}
+
+            {/* New Address Form */}
+            {showAddressForm && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-medium mb-3">Add New Address</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={newAddress?.fullName ?? ""}
+                    onChange={(e) => setNewAddress({...newAddress, fullName: e.target.value})}
+                    className="border px-3 py-2 rounded-lg focus:outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Mobile Number"
+                    value={newAddress?.mobile ?? ""}
+                    onChange={(e) => setNewAddress({...newAddress, mobile: e.target.value})}
+                    className="border px-3 py-2 rounded-lg focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Address Line 1"
+                    value={newAddress?.addressLine1 ?? ""}
+                    onChange={(e) => setNewAddress({...newAddress, addressLine1: e.target.value})}
+                    className="border px-3 py-2 rounded-lg focus:outline-none md:col-span-2"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Pincode"
+                    value={newAddress?.pincode ?? ""}
+                    onChange={(e) => {
+                      setNewAddress({...newAddress, pincode: e.target.value});
+                      if (e.target.value.length === 6) fetchCityState(e.target.value);
+                    }}
+                    className="border px-3 py-2 rounded-lg focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="City"
+                    value={newAddress?.city ?? ""}
+                    onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
+                    className="border px-3 py-2 rounded-lg focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="State"
+                    value={newAddress?.state ?? ""}
+                    onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
+                    className="border px-3 py-2 rounded-lg focus:outline-none md:col-span-2"
+                  />
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      if (!newAddress?.fullName || !newAddress?.mobile || !newAddress?.addressLine1) {
+                        toast.error('Please fill all required fields');
+                        return;
+                      }
+                      try {
+                        const addressWithEmail = { ...newAddress, email: user?.email };
+                        await saveUserAddress({ uid: user?.uid, address: addressWithEmail });
+                        setSelectedAddress(addressWithEmail);
+                        setShowAddressForm(false);
+                        setNewAddress(null);
+                        toast.success('Address saved!');
+                      } catch (error) {
+                        toast.error('Failed to save address');
+                      }
+                    }}
+                  >
+                    Save Address
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="bordered"
+                    onClick={() => {
+                      setShowAddressForm(false);
+                      setNewAddress(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Delivery Options */}
+            {hasPhysical && selectedAddress?.pincode && (
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <h3 className="font-medium mb-3 text-blue-900">Delivery Options</h3>
+                {loadingRates ? (
+                  <div className="text-sm text-blue-600">Calculating delivery charges...</div>
+                ) : shippingRates.length > 0 ? (
+                  <div className="space-y-2">
+                    {shippingRates.slice(0, 3).map((rate, index) => (
+                      <label key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-300">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="shipping"
+                            checked={selectedShipping?.courier_company_id === rate.courier_company_id}
+                            onChange={() => setSelectedShipping(rate)}
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900">{rate.courier_name}</div>
+                            <div className="text-sm text-gray-500">{rate.estimated_delivery_days} days delivery</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-green-600">₹{rate.rate}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-red-600">Delivery not available to this pincode</div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500">
+            Your eBook download link will be sent to {user?.email} after payment.
           </div>
         )}
       </section>
@@ -419,20 +482,26 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
               );
             })}
           </div>
-          <div className="border-t pt-2">
+          <div className="border-t pt-2 space-y-2">
             <div className="flex justify-between items-center p-2">
-              <span>Subtotal</span>
-              <span>₹{subtotal}</span>
+              <span className="text-gray-600">Subtotal</span>
+              <span className="font-medium">₹{subtotal}</span>
             </div>
             {hasPhysical && selectedShipping && (
               <div className="flex justify-between items-center p-2">
-                <span>Shipping ({selectedShipping.courier_name})</span>
-                <span>₹{selectedShipping.rate}</span>
+                <span className="text-gray-600">Delivery ({selectedShipping.courier_name})</span>
+                <span className="font-medium text-green-600">₹{selectedShipping.rate}</span>
               </div>
             )}
-            <div className="flex justify-between w-full items-center p-2 font-semibold border-t">
-              <h1>Total</h1>
-              <h1 className="text-lg">₹{totalPrice}</h1>
+            {hasPhysical && !selectedShipping && selectedAddress && (
+              <div className="flex justify-between items-center p-2">
+                <span className="text-gray-600">Delivery</span>
+                <span className="text-gray-400">Select option</span>
+              </div>
+            )}
+            <div className="flex justify-between w-full items-center p-2 font-bold border-t border-gray-300 bg-gray-50 rounded">
+              <h1 className="text-lg">Total Amount</h1>
+              <h1 className="text-xl text-green-600">₹{totalPrice}</h1>
             </div>
           </div>
         </section>

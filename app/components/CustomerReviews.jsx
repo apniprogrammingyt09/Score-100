@@ -8,7 +8,7 @@ export default function CustomerReviews() {
         "Score 100 books helped me score 95+ in my board exams! The PYQs and revision notes are amazing. Highly recommended for CBSE students.",
       rating: 5,
       imageLink:
-        "https://randomuser.me/api/portraits/men/32.jpg",
+        "https://img.freepik.com/premium-photo/confident-young-male-indian-student-standing-outside-university-campus-with-backpack-holding-notebook-looking-seriously-camera_321831-24316.jpg?semt=ais_hybrid&w=740&q=80",
     },
     {
       name: "Priya Verma - Class 12",
@@ -16,7 +16,7 @@ export default function CustomerReviews() {
         "Best question bank for board preparation. The mindmaps and cheat sheets made revision so easy. Scored 98 in Mathematics!",
       rating: 5,
       imageLink:
-        "https://randomuser.me/api/portraits/women/44.jpg",
+        "https://media.istockphoto.com/id/1272815911/photo/young-indian-female-university-student-stock-photo.jpg?s=612x612&w=0&k=20&c=Iwdc08GR3pw8_Qg3_nabNJUQYTo52EU3dvW4tsth1tE=",
     },
     {
       name: "Amit Patel - Class 11",
@@ -24,7 +24,7 @@ export default function CustomerReviews() {
         "Excellent collection of previous year papers with detailed solutions. The competency-based questions are very helpful.",
       rating: 4.5,
       imageLink:
-        "https://randomuser.me/api/portraits/men/67.jpg",
+        "https://img.freepik.com/free-photo/handsome-young-indian-student-man-holding-notebooks-while-standing-street_231208-2771.jpg?semt=ais_hybrid&w=740&q=80",
     },
   ];
   return (

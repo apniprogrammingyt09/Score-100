@@ -124,47 +124,29 @@ export default function BasicDetails({ data, handleData }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-gray-500 text-xs" htmlFor="product-collections">
+        <label className="text-gray-500 text-xs" htmlFor="product-collection">
           Subject / Collection
         </label>
-        <div className="flex flex-wrap gap-2 border px-4 py-3 rounded-lg w-full">
+        <select
+          id="product-collection"
+          name="product-collection"
+          value={data?.collectionId ?? ""}
+          onChange={(e) => {
+            handleData("collectionId", e.target.value);
+          }}
+          className="border px-4 py-2 rounded-lg w-full outline-none"
+        >
+          <option value="">Select Subject</option>
           {collections?.map((item) => {
-            const isSelected = data?.collectionIds?.includes(item?.id);
             return (
-              <label
-                key={item?.id}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border transition-all ${
-                  isSelected
-                    ? "bg-indigo-900 text-white border-indigo-900"
-                    : "bg-gray-100 hover:bg-gray-200 border-gray-200"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={(e) => {
-                    const currentIds = data?.collectionIds ?? [];
-                    if (e.target.checked) {
-                      handleData("collectionIds", [...currentIds, item?.id]);
-                    } else {
-                      handleData(
-                        "collectionIds",
-                        currentIds.filter((id) => id !== item?.id)
-                      );
-                    }
-                  }}
-                  className="hidden"
-                />
-                <span className="text-sm">{item?.title}</span>
-              </label>
+              <option value={item?.id} key={item?.id}>
+                {item?.title}
+              </option>
             );
           })}
-          {(!collections || collections.length === 0) && (
-            <p className="text-gray-400 text-sm">No collections available. Create collections first in Admin → Collections.</p>
-          )}
-        </div>
-        {data?.collectionIds?.length > 0 && (
-          <p className="text-xs text-gray-400">{data.collectionIds.length} subject(s) selected</p>
+        </select>
+        {(!collections || collections.length === 0) && (
+          <p className="text-xs text-gray-400">No collections available. Create collections first in Admin → Collections.</p>
         )}
       </div>
 

@@ -84,5 +84,18 @@ export const deleteProduct = async ({ id }) => {
   if (!id) {
     throw new Error("ID is required");
   }
+  
+  // Delete the product
   await deleteDoc(doc(db, `products/${id}`));
+  
+  // Clean up from all user carts and favorites
+  try {
+    await fetch('/api/cleanup-product', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id })
+    });
+  } catch (error) {
+    console.error('Failed to cleanup product from user collections:', error);
+  }
 };

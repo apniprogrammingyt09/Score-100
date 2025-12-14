@@ -127,6 +127,25 @@ export const verifyRazorpayPayment = async ({
     { merge: true }
   );
 
+  // Get updated checkout data for notifications
+  const checkoutDoc = await getDoc(ref);
+  const checkoutData = checkoutDoc.data();
+
+  // Send email notifications
+  try {
+    await fetch('/api/send-order-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderData: { id: checkoutId, checkout: checkoutData, paymentMode: 'razorpay' },
+        customerEmail: checkoutData?.address?.email,
+        customerName: checkoutData?.address?.fullName || 'Customer'
+      })
+    });
+  } catch (error) {
+    console.error('Failed to send notifications:', error);
+  }
+
   return {
     success: true,
     checkoutId,

@@ -1,7 +1,41 @@
+"use client";
 import Link from "next/link";
 import { Mail, ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsLoading(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('Successfully subscribed!');
+        setEmail('');
+      } else {
+        setMessage(data.error || 'Failed to subscribe');
+      }
+    } catch (error) {
+      setMessage('Failed to subscribe');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <footer className="w-full bg-[#0a0a1a] text-white pt-32 md:pt-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
@@ -17,17 +51,31 @@ export default function Footer() {
             {/* Newsletter */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Subscribe Newsletter</h3>
-              <div className="flex items-center bg-[#1a1a2e] rounded-full p-1.5 max-w-md">
-                <input
-                  type="email"
-                  placeholder="Enter your email address.."
-                  className="flex-1 bg-transparent px-4 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none"
-                />
-                <button className="group flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors">
-                  Subscribe
-                  <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
+              <form onSubmit={handleSubscribe} className="space-y-2">
+                <div className="flex items-center bg-[#1a1a2e] rounded-full p-1.5 max-w-md">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address.."
+                    className="flex-1 bg-transparent px-4 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none"
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="group flex items-center gap-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-400 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors"
+                  >
+                    {isLoading ? 'Subscribing...' : 'Subscribe'}
+                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </div>
+                {message && (
+                  <p className={`text-sm ${message.includes('Successfully') ? 'text-green-400' : 'text-red-400'}`}>
+                    {message}
+                  </p>
+                )}
+              </form>
             </div>
           </div>
 
