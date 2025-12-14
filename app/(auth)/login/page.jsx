@@ -33,6 +33,11 @@ export default function Page() {
     try {
       await signInWithEmailAndPassword(auth, data?.email, data?.password);
       toast.success("Logged In Successfully");
+      
+      // Check if admin and redirect
+      if (data?.email === 'admin@gmail.com') {
+        router.push('/admin');
+      }
     } catch (error) {
       toast.error(error?.message);
     }
@@ -41,7 +46,12 @@ export default function Page() {
 
   useEffect(() => {
     if (user) {
-      router.push("/account");
+      // Check if admin user
+      if (user.email === 'admin@gmail.com') {
+        router.push('/admin');
+      } else {
+        router.push('/account');
+      }
     }
   }, [user]);
 
