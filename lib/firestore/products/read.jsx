@@ -12,7 +12,8 @@ import {
 } from "firebase/firestore";
 import useSWRSubscription from "swr/subscription";
 
-export function useProducts({ pageLimit, lastSnapDoc }) {
+export function useProducts(param = {}) {
+  const { pageLimit, lastSnapDoc } = param;
   const { data, error } = useSWRSubscription(
     ["products", pageLimit, lastSnapDoc],
     ([path, pageLimit, lastSnapDoc], { next }) => {

@@ -9,6 +9,9 @@ This is a Full Stack E-Commerce Website for Score 100 Question Bank Books built 
 - Shopping cart functionality
 - Cash on Delivery checkout
 - Admin panel for managing products, orders, and users
+- **Shiprocket Integration** for automated order fulfillment
+- Package dimension input and automatic order creation
+- Real-time order status updates via webhooks
 
 ## Technologies Used
 
@@ -47,6 +50,10 @@ This is a Full Stack E-Commerce Website for Score 100 Question Bank Books built 
    NEXT_PUBLIC_DOMAIN=""
    
    NEXT_PUBLIC_FIREBASE_SERVICE_ACCOUNT_KEYS='{}'
+   
+   # Shiprocket Configuration
+   SHIPROCKET_EMAIL="your-shiprocket-email@example.com"
+   SHIPROCKET_PASSWORD="your-shiprocket-password"
    ```
 
 5. Start the development server:

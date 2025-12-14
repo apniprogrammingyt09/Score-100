@@ -72,6 +72,9 @@ export default function ListView() {
               Total Products
             </th>
             <th className="font-semibold border-y bg-white px-3 py-2 text-left">
+              Format
+            </th>
+            <th className="font-semibold border-y bg-white px-3 py-2 text-left">
               Payment Mode
             </th>
             <th className="font-semibold border-y bg-white px-3 py-2 text-left">
@@ -131,9 +134,25 @@ export default function ListView() {
 
 function Row({ item, index }) {
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Handle both old and new order structures
   const totalAmount = item?.checkout?.line_items?.reduce((prev, curr) => {
-    return prev + (curr?.price_data?.unit_amount / 100) * curr?.quantity;
+    // New structure (Razorpay orders)
+    if (curr?.price) {
+      return prev + (curr?.price * curr?.quantity);
+    }
+    // Old structure (Stripe-like orders)
+    if (curr?.price_data?.unit_amount) {
+      return prev + (curr?.price_data?.unit_amount / 100) * curr?.quantity;
+    }
+    return prev;
   }, 0);
+  
+  // Check if order contains eBooks, physical books, or both
+  const hasEbooks = item?.checkout?.line_items?.some(item => item?.format === "ebook");
+  const hasPhysical = item?.checkout?.line_items?.some(item => item?.format !== "ebook" && item?.format !== undefined) || 
+                     item?.checkout?.line_items?.some(item => !item?.format); // Old orders without format are physical
+  
   const { data: user } = useUser({ uid: item?.uid });
   return (
     <tr>
@@ -154,6 +173,20 @@ function Row({ item, index }) {
       </td>
       <td className="border-y bg-white px-3 py-2">
         {item?.checkout?.line_items?.length}
+      </td>
+      <td className="border-y bg-white px-3 py-2">
+        <div className="flex gap-1 flex-wrap">
+          {hasEbooks && (
+            <span className="bg-blue-100 text-blue-800 text-xs rounded-lg px-2 py-1">
+              eBook
+            </span>
+          )}
+          {hasPhysical && (
+            <span className="bg-orange-100 text-orange-800 text-xs rounded-lg px-2 py-1">
+              Physical
+            </span>
+          )}
+        </div>
       </td>
       <td className="border-y bg-white px-3 py-2">
         <div className="flex">

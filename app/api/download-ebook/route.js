@@ -1,107 +1,117 @@
-import { NextResponse } from "next/server";
-import { adminDB } from "@/lib/firebase_admin";
-import { readFile } from "fs/promises";
-import path from "path";
+import { NextResponse } from 'next/server';
+import { adminDB } from '@/lib/firebase_admin';
+import { storage, EBOOK_BUCKET_ID } from '@/lib/appwrite';
+import { headers } from 'next/headers';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get("orderId");
-    const productId = searchParams.get("productId");
-    const uid = searchParams.get("uid");
+    const orderId = searchParams.get('orderId');
+    const productId = searchParams.get('productId');
+    const uid = searchParams.get('uid');
 
+    // Strict parameter validation
     if (!orderId || !productId || !uid) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Access denied: Missing parameters' }, { status: 400 });
     }
 
-    // Verify the order exists and belongs to the user
-    const orderDoc = await adminDB.doc(`orders/${orderId}`).get();
+    // Additional security: Check referer to prevent direct access
+    const headersList = headers();
+    const referer = headersList.get('referer');
+    const host = headersList.get('host');
+    
+    if (!referer || !referer.includes(host)) {
+      return NextResponse.json({ error: 'Access denied: Invalid request source' }, { status: 403 });
+    }
 
+    // Verify order exists and belongs to user
+    const orderDoc = await adminDB.collection('orders').doc(orderId).get();
     if (!orderDoc.exists) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Access denied: Order not found' }, { status: 404 });
     }
 
-    const order = orderDoc.data();
-
-    // Verify the order belongs to the user
-    if (order.uid !== uid) {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 403 }
-      );
+    const orderData = orderDoc.data();
+    
+    // Strict user verification
+    if (orderData.uid !== uid) {
+      return NextResponse.json({ error: 'Access denied: Unauthorized user' }, { status: 403 });
     }
 
-    // Verify order is not cancelled (order exists means payment was successful)
-    if (order.status === "cancelled") {
-      return NextResponse.json(
-        { error: "Order was cancelled" },
-        { status: 403 }
-      );
+    // Verify payment status (only allow completed payments)
+    if (orderData.paymentMode === 'PREPAID' && orderData.status !== 'completed' && !orderData.checkout?.payment_status) {
+      return NextResponse.json({ error: 'Access denied: Payment not completed' }, { status: 403 });
     }
 
-    // Find the eBook in the order
-    const lineItem = order.checkout?.line_items?.find(
-      (item) => item.productId === productId && item.format === "ebook"
-    );
+    // Verify product exists in this specific order
+    const hasProduct = orderData.checkout?.line_items?.some(item => {
+      const itemProductId = item.productId || item.price_data?.product_data?.productId;
+      return itemProductId === productId;
+    });
 
-    if (!lineItem || !lineItem.ebookUrl) {
-      return NextResponse.json(
-        { error: "eBook not found in this order" },
-        { status: 404 }
-      );
+    if (!hasProduct) {
+      return NextResponse.json({ error: 'Access denied: Product not purchased in this order' }, { status: 403 });
     }
 
-    const ebookUrl = lineItem.ebookUrl;
+    // Get product and verify it's an eBook
+    const productDoc = await adminDB.collection('products').doc(productId).get();
+    if (!productDoc.exists) {
+      return NextResponse.json({ error: 'Access denied: Product not found' }, { status: 404 });
+    }
 
-    // Check if it's an internal file (stored on our server)
-    if (ebookUrl.startsWith("/ebooks/") || ebookUrl.startsWith("/protected-ebooks/")) {
-      // Internal file - serve it directly
-      const filename = ebookUrl.split("/").pop();
-      
-      // Try protected folder first, then public ebooks folder
-      let filepath = path.join(process.cwd(), "protected-ebooks", filename);
-      let fileBuffer;
-      
-      try {
-        fileBuffer = await readFile(filepath);
-      } catch (e) {
-        // Try public ebooks folder as fallback
-        filepath = path.join(process.cwd(), "public", "ebooks", filename);
-        try {
-          fileBuffer = await readFile(filepath);
-        } catch (e2) {
-          return NextResponse.json(
-            { error: "eBook file not found on server" },
-            { status: 404 }
-          );
-        }
+    const productData = productDoc.data();
+    if (!productData.isEbook && !productData.ebookFileId && !productData.ebookUrl) {
+      return NextResponse.json({ error: 'Access denied: Not an eBook product' }, { status: 403 });
+    }
+    const ebookFileId = productData.ebookFileId;
+    const ebookUrl = productData.ebookUrl;
+
+    if (!ebookFileId && !ebookUrl) {
+      return NextResponse.json({ error: 'eBook not found' }, { status: 404 });
+    }
+
+    let fileBuffer;
+    
+    if (ebookFileId) {
+      // Get file from Appwrite Storage
+      fileBuffer = await storage.getFileDownload(EBOOK_BUCKET_ID, ebookFileId);
+    } else if (ebookUrl) {
+      // Fallback: fetch from URL (for old uploads)
+      const response = await fetch(ebookUrl);
+      if (!response.ok) {
+        return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
       }
-
-      // Create download response
-      const response = new NextResponse(fileBuffer);
-      response.headers.set("Content-Type", "application/pdf");
-      response.headers.set(
-        "Content-Disposition",
-        `attachment; filename="${lineItem.name?.replace(/[^a-zA-Z0-9\s]/g, "") || "ebook"}.pdf"`
-      );
-      response.headers.set("Content-Length", fileBuffer.length.toString());
-      
-      return response;
-    } else {
-      // External URL (Google Drive, etc.) - redirect to it
-      return NextResponse.redirect(ebookUrl);
+      fileBuffer = await response.arrayBuffer();
     }
+    
+    const productTitle = productDoc.data().title || 'ebook';
+    const filename = `${productTitle.replace(/[^a-zA-Z0-9\s]/g, '_')}.pdf`;
+
+    // Log the download for security audit
+    await adminDB.collection('ebook_downloads').add({
+      orderId,
+      productId,
+      uid,
+      downloadTime: new Date(),
+      userAgent: headersList.get('user-agent'),
+      ip: headersList.get('x-forwarded-for') || 'unknown'
+    });
+
+    // Return the file with strict security headers
+    return new NextResponse(fileBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block'
+      },
+    });
+    
   } catch (error) {
-    console.error("Secure download error:", error);
-    return NextResponse.json(
-      { error: "Failed to download eBook" },
-      { status: 500 }
-    );
+    console.error('Download error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

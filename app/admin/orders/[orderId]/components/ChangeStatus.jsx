@@ -8,6 +8,7 @@ export default function ChangeOrderStatus({ order }) {
     try {
       if (!status) {
         toast.error("Please Select Status");
+        return;
       }
       await toast.promise(
         updateOrderStatus({ id: order?.id, status: status }),
@@ -21,9 +22,10 @@ export default function ChangeOrderStatus({ order }) {
       toast.error(error?.message);
     }
   };
+  
   return (
     <select
-      value={order?.status}
+      value={order?.status || ""}
       onChange={(e) => {
         handleChangeStatus(e.target.value);
       }}
@@ -33,9 +35,9 @@ export default function ChangeOrderStatus({ order }) {
     >
       <option value="">Update Status</option>
       <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
       <option value="packed">Packed</option>
-      <option value="picked up">Picked Up</option>
-      <option value="in transit">In Transit</option>
+      <option value="shipped">Shipped</option>
       <option value="out for delivery">Out For Delivery</option>
       <option value="delivered">Delivered</option>
       <option value="cancelled">Cancelled</option>

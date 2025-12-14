@@ -7,3 +7,13 @@ export const updateOrderStatus = async ({ id, status }) => {
     timestampStatusUpdate: Timestamp.now(),
   });
 };
+
+export const acceptOrderWithShiprocket = async ({ id, shiprocketOrderId, shiprocketShipmentId, packageDetails }) => {
+  await updateDoc(doc(db, `orders/${id}`), {
+    status: 'accepted',
+    shiprocketOrderId,
+    shiprocketShipmentId,
+    packageDetails,
+    timestampAccepted: Timestamp.now(),
+  });
+};

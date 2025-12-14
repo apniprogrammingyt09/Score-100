@@ -1,4 +1,7 @@
-import { Heart, Search, ShoppingCart, UserCircle2 } from "lucide-react";
+"use client";
+
+import { Heart, Search, ShoppingCart, UserCircle2, Menu, X } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 import LogoutButton from "./LogoutButton";
 import AuthContextProvider from "@/contexts/AuthContext";
@@ -6,6 +9,8 @@ import HeaderClientButtons from "./HeaderClientButtons";
 import AdminButton from "./AdminButton";
 
 export default function Header() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const menuList = [
     {
       name: "Home",
@@ -25,50 +30,94 @@ export default function Header() {
     },
   ];
   return (
-    <nav className="sticky top-0 z-50 bg-white bg-opacity-65 backdrop-blur-2xl py-3 px-4 md:py-4 md:px-16 border-b flex items-center justify-between">
-      <Link href={"/"}>
-        <img className="h-4 md:h-5" src="/logo.png" alt="Logo" />
-      </Link>
-      <div className="hidden md:flex gap-2 items-center font-semibold">
-        {menuList?.map((item) => {
-          return (
-            <Link href={item?.link} key={item?.name}>
-              <button className="text-sm px-4 py-2 rounded-lg hover:bg-gray-50">
-                {item?.name}
-              </button>
+    <>
+      <nav className="sticky top-0 z-50 bg-white bg-opacity-65 backdrop-blur-2xl border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center">
+              <img
+                className="h-9 w-auto"
+                src="/logo.png"
+                alt="Score 100 Logo"
+              />
             </Link>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-1">
-        <AuthContextProvider>
-          <AdminButton />
-        </AuthContextProvider>
-        <Link href={`/search`}>
-          <button
-            title="Search Books"
-            aria-label="Search Books"
-            className="h-8 w-8 flex justify-center items-center rounded-full hover:bg-gray-50"
-          >
-            <Search size={14} />
-          </button>
-        </Link>
-        <AuthContextProvider>
-          <HeaderClientButtons />
-        </AuthContextProvider>
-        <Link href={`/account`}>
-          <button
-            title="My Account"
-            aria-label="My Account"
-            className="h-8 w-8 flex justify-center items-center rounded-full hover:bg-gray-50"
-          >
-            <UserCircle2 size={14} />
-          </button>
-        </Link>
-        <AuthContextProvider>
-          <LogoutButton />
-        </AuthContextProvider>
-      </div>
-    </nav>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {menuList.map((item) => (
+                <Link key={item.name} href={item.link}>
+                  <button className="text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    {item.name}
+                  </button>
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-1">
+              <AuthContextProvider>
+                <AdminButton />
+              </AuthContextProvider>
+              
+              <Link href="/search">
+                <button
+                  title="Search Books"
+                  aria-label="Search Books"
+                  className="h-10 w-10 flex justify-center items-center rounded-full hover:bg-gray-50 transition-colors"
+                >
+                  <Search size={16} />
+                </button>
+              </Link>
+              
+              <AuthContextProvider>
+                <HeaderClientButtons />
+              </AuthContextProvider>
+              
+              <Link href="/account">
+                <button
+                  title="My Account"
+                  aria-label="My Account"
+                  className="h-10 w-10 flex justify-center items-center rounded-full hover:bg-gray-50 transition-colors"
+                >
+                  <UserCircle2 size={16} />
+                </button>
+              </Link>
+              
+              <AuthContextProvider>
+                <LogoutButton />
+              </AuthContextProvider>
+
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden h-10 w-10 flex justify-center items-center rounded-full hover:bg-gray-50 transition-colors"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t bg-white">
+            <div className="px-4 py-3 space-y-1">
+              {menuList.map((item) => (
+                <Link key={item.name} href={item.link}>
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block w-full text-left px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {item.name}
+                  </button>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </nav>
+    </>
   );
 }

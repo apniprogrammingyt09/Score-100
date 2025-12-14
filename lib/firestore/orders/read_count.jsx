@@ -2,13 +2,9 @@
 
 import { db } from "@/lib/firebase";
 import {
-  average,
   collection,
-  count,
-  getAggregateFromServer,
-  getCountFromServer,
+  getDocs,
   query,
-  sum,
   where,
 } from "firebase/firestore";
 import useSWR from "swr";
@@ -21,7 +17,7 @@ export const getOrdersCounts = async ({ date }) => {
     const fromDate = new Date(date);
     fromDate.setHours(0, 0, 0, 0);
     const toDate = new Date(date);
-    toDate.setHours(24, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
     q = query(
       q,
       where("timestampCreate", ">=", fromDate),
@@ -29,17 +25,24 @@ export const getOrdersCounts = async ({ date }) => {
     );
   }
 
-  const data = await getAggregateFromServer(q, {
-    totalRevenue: sum("payment.amount"),
-    totalOrders: count(),
-  });
+  const snapshot = await getDocs(q);
+  const orders = snapshot.docs.map(doc => doc.data());
+  
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum, order) => {
+    const amount = order?.checkout?.amount_total || order?.checkout?.amount || 0;
+    return sum + amount;
+  }, 0);
+
+  const result = { totalOrders, totalRevenue };
+  
   if (date) {
     return {
       date: `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`,
-      data: data.data(),
+      data: result,
     };
   }
-  return data.data();
+  return result;
 };
 
 const getTotalOrdersCounts = async (dates) => {

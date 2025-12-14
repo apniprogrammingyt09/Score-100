@@ -23,12 +23,16 @@ ChartJS.register(
 );
 
 export default function RevenueChart({ items }) {
+  const chartData = items?.length > 0 ? items : [
+    { date: 'No Data', data: { totalRevenue: 0 } }
+  ];
+
   const data = {
-    labels: items?.map((item) => item?.date),
+    labels: chartData.map((item) => item?.date),
     datasets: [
       {
-        label: "Revenue",
-        data: items?.map((item) => (item?.data?.totalRevenue ?? 0) / 100),
+        label: "Revenue (₹)",
+        data: chartData.map((item) => item?.data?.totalRevenue || 0),
         backgroundColor: "#879fff20",
         borderColor: "#879fff80",
       },

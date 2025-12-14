@@ -30,6 +30,9 @@ const loadRazorpayScript = () => {
 export default function Checkout({ productList, hasEbooks, hasPhysical }) {
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState(null);
+  const [shippingRates, setShippingRates] = useState([]);
+  const [selectedShipping, setSelectedShipping] = useState(null);
+  const [loadingRates, setLoadingRates] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -39,15 +42,77 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
 
   const handleAddress = (key, value) => {
     setAddress({ ...(address ?? {}), [key]: value });
+    
+    // Auto-fill city and state when pincode is entered
+    if (key === 'pincode' && value.length === 6) {
+      fetchCityState(value);
+    }
+  };
+
+  const fetchCityState = async (pincode) => {
+    try {
+      const response = await fetch(`/api/pincode?pincode=${pincode}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAddress(prev => ({
+          ...prev,
+          city: data.city,
+          state: data.state
+        }));
+        
+        // Fetch shipping rates if physical products exist
+        if (hasPhysical) {
+          fetchShippingRates(pincode);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch city/state:', error);
+    }
+  };
+
+  const fetchShippingRates = async (deliveryPincode) => {
+    setLoadingRates(true);
+    try {
+      const totalWeight = productList?.reduce((total, item) => {
+        return total + (item?.quantity * 0.5); // Assuming 0.5kg per book
+      }, 0);
+
+      const response = await fetch('/api/shiprocket/rates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pickup_postcode: '452008',
+          delivery_postcode: deliveryPincode,
+          weight: totalWeight,
+          cod: true
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setShippingRates(data.rates);
+        if (data.rates.length > 0) {
+          setSelectedShipping(data.rates[0]); // Select first option by default
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch shipping rates:', error);
+    } finally {
+      setLoadingRates(false);
+    }
   };
 
   // Calculate total price based on format
-  const totalPrice = productList?.reduce((prev, curr) => {
+  const subtotal = productList?.reduce((prev, curr) => {
     const price = curr?.format === "ebook" 
       ? (curr?.product?.ebookSalePrice || curr?.product?.salePrice)
       : curr?.product?.salePrice;
     return prev + curr?.quantity * price;
   }, 0);
+
+  const shippingCharge = hasPhysical && selectedShipping ? selectedShipping.rate : 0;
+  const totalPrice = subtotal + shippingCharge;
 
   const handleRazorpayPayment = async () => {
     try {
@@ -71,41 +136,6 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
         description: "Purchase from Score 100 Books",
         image: "/logo.png",
         order_id: orderData.razorpayOrderId,
-        // Enable all payment methods
-        config: {
-          display: {
-            blocks: {
-              upi: {
-                name: "Pay via UPI",
-                instruments: [
-                  { method: "upi", flows: ["collect", "intent", "qr"] }
-                ]
-              },
-              cards: {
-                name: "Cards",
-                instruments: [
-                  { method: "card" }
-                ]
-              },
-              netbanking: {
-                name: "Net Banking",
-                instruments: [
-                  { method: "netbanking" }
-                ]
-              },
-              wallet: {
-                name: "Wallets",
-                instruments: [
-                  { method: "wallet" }
-                ]
-              }
-            },
-            sequence: ["block.upi", "block.cards", "block.netbanking", "block.wallet"],
-            preferences: {
-              show_default_blocks: true
-            }
-          }
-        },
         handler: async function (response) {
           try {
             // Verify payment
@@ -306,6 +336,37 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
             </p>
           )}
         </div>
+        
+        {/* Shipping Options */}
+        {hasPhysical && address?.pincode?.length === 6 && (
+          <div className="mt-4">
+            <h3 className="font-semibold mb-2">Shipping Options</h3>
+            {loadingRates ? (
+              <div className="text-sm text-gray-500">Loading shipping rates...</div>
+            ) : shippingRates.length > 0 ? (
+              <div className="space-y-2">
+                {shippingRates.slice(0, 3).map((rate, index) => (
+                  <label key={index} className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="shipping"
+                      checked={selectedShipping?.courier_company_id === rate.courier_company_id}
+                      onChange={() => setSelectedShipping(rate)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{rate.courier_name}</div>
+                      <div className="text-sm text-gray-500">
+                        ₹{rate.rate} • {rate.estimated_delivery_days} days
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : address?.pincode && (
+              <div className="text-sm text-red-500">No shipping available to this pincode</div>
+            )}
+          </div>
+        )}
       </section>
       <div className="flex-1 flex flex-col gap-3">
         <section className="flex flex-col gap-3 border rounded-xl p-4">
@@ -358,9 +419,21 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
               );
             })}
           </div>
-          <div className="flex justify-between w-full items-center p-2 font-semibold border-t">
-            <h1>Total</h1>
-            <h1 className="text-lg">₹{totalPrice}</h1>
+          <div className="border-t pt-2">
+            <div className="flex justify-between items-center p-2">
+              <span>Subtotal</span>
+              <span>₹{subtotal}</span>
+            </div>
+            {hasPhysical && selectedShipping && (
+              <div className="flex justify-between items-center p-2">
+                <span>Shipping ({selectedShipping.courier_name})</span>
+                <span>₹{selectedShipping.rate}</span>
+              </div>
+            )}
+            <div className="flex justify-between w-full items-center p-2 font-semibold border-t">
+              <h1>Total</h1>
+              <h1 className="text-lg">₹{totalPrice}</h1>
+            </div>
           </div>
         </section>
         <section className="flex flex-col gap-3 border rounded-xl p-4">

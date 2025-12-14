@@ -1,79 +1,37 @@
-import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-
-// Generate unique ID without external dependency
-const generateUniqueId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-};
+import { NextResponse } from 'next/server';
+import { storage, EBOOK_BUCKET_ID } from '@/lib/appwrite';
+import { ID } from 'appwrite';
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file");
-    const productId = formData.get("productId");
+    const file = formData.get('file');
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file type (only PDF allowed)
-    if (!file.type.includes("pdf")) {
-      return NextResponse.json(
-        { error: "Only PDF files are allowed" },
-        { status: 400 }
-      );
+    if (file.type !== 'application/pdf') {
+      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 });
     }
 
-    // Max file size: 50MB
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "File size exceeds 50MB limit" },
-        { status: 400 }
-      );
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create unique filename
-    const uniqueId = generateUniqueId();
-    const filename = `ebook_${productId || "unknown"}_${uniqueId}.pdf`;
+    // Generate unique file ID
+    const fileId = ID.unique();
     
-    // Store in protected-ebooks folder (NOT public - requires API to access)
-    const ebooksDir = path.join(process.cwd(), "protected-ebooks");
-    try {
-      await mkdir(ebooksDir, { recursive: true });
-    } catch (e) {
-      // Directory might already exist
-    }
+    // Upload to Appwrite Storage
+    const uploadedFile = await storage.createFile(
+      EBOOK_BUCKET_ID,
+      fileId,
+      file
+    );
 
-    const filepath = path.join(ebooksDir, filename);
-    await writeFile(filepath, buffer);
-
-    // Return the internal path (will be served via secure download API)
-    const fileUrl = `/protected-ebooks/${filename}`;
-
-    return NextResponse.json({
-      success: true,
-      url: fileUrl,
-      filename: filename,
+    // Return the file ID (we'll use this to get download URL later)
+    return NextResponse.json({ 
+      fileId: uploadedFile.$id,
+      url: `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${EBOOK_BUCKET_ID}/files/${uploadedFile.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`
     });
   } catch (error) {
-    console.error("eBook upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload eBook" },
-      { status: 500 }
-    );
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

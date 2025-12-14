@@ -1,12 +1,13 @@
 "use client";
 
 import { Bar } from "react-chartjs-2";
+import { useProducts } from "@/lib/firestore/products/read";
+import { useCategories } from "@/lib/firestore/categories/read";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
-  PointElement,
   Title,
   Tooltip,
   Legend,
@@ -16,27 +17,29 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  PointElement,
   Title,
   Tooltip,
   Legend
 );
 
-export default function OrdersChart({ items }) {
-  const chartData = items?.length > 0 ? items : [
-    { date: 'No Data', data: { totalOrders: 0 } }
-  ];
+export default function CategoryChart() {
+  const { data: products } = useProducts();
+  const { data: categories } = useCategories();
+
+  const categoryData = categories?.map(category => ({
+    name: category.name,
+    count: products?.filter(p => p.categoryId === category.id)?.length || 0
+  })) || [];
 
   const data = {
-    labels: chartData.map((item) => item?.date),
+    labels: categoryData.map(item => item.name),
     datasets: [
       {
-        label: "Orders",
-        data: chartData.map((item) => item?.data?.totalOrders || 0),
-        backgroundColor: "#879fff20",
-        borderColor: "#879fff80",
-        borderWidth: 0.5,
-        barThickness: 30,
+        label: "Products",
+        data: categoryData.map(item => item.count),
+        backgroundColor: "#6366f1",
+        borderColor: "#4f46e5",
+        borderWidth: 1,
       },
     ],
   };
@@ -50,7 +53,7 @@ export default function OrdersChart({ items }) {
       },
       title: {
         display: true,
-        text: "Total Order Bar Chart",
+        text: "Products by Category",
       },
     },
     scales: {
