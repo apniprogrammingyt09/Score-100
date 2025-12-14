@@ -38,9 +38,9 @@ export default function Reviews({ productId }) {
     <div className="flex flex-col gap-3 p-3 rounded-xl border w-full">
       <h1 className="text-lg font-semibold">Reviews</h1>
       <div className="flex flex-col gap-4">
-        {data?.map((item) => {
+        {data?.map((item, index) => {
           return (
-            <div className="flex gap-3">
+            <div key={item?.id || index} className="flex gap-3">
               <div className="">
                 <Avatar src={item?.photoURL} />
               </div>
@@ -58,7 +58,7 @@ export default function Reviews({ productId }) {
                       variant="flat"
                       isDisabled={isLoading}
                       isLoading={isLoading}
-                      onClick={handleDelete}
+                      onPress={handleDelete}
                     >
                       <Trash2 size={12} />
                     </Button>

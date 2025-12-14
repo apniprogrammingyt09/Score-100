@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrders } from "@/lib/firestore/orders/read";
 import { CircularProgress } from "@nextui-org/react";
-import { Book, Download, Smartphone } from "lucide-react";
+import { Book, Download, Smartphone, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default function Page() {
@@ -95,6 +95,36 @@ export default function Page() {
                       ? 'DELIVERED' 
                       : item?.status ?? "pending"}
                   </h3>
+                  {item?.shiprocketOrderId && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/shiprocket/generate-invoice', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ shiprocketOrderId: item.shiprocketOrderId })
+                          });
+                          if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `invoice-${item.shiprocketOrderId}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                          }
+                        } catch (error) {
+                          console.error('Failed to download invoice:', error);
+                        }
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <FileText size={10} />
+                      Invoice
+                    </button>
+                  )}
                   {item?.checkout?.hasEbooks && (
                     <span className="bg-emerald-100 text-emerald-700 text-xs rounded-lg px-2 py-1 flex items-center gap-1">
                       <Smartphone size={10} />
@@ -103,6 +133,7 @@ export default function Page() {
                   )}
                   <h3 className="text-green-600 font-semibold">₹{totalAmount}</h3>
                 </div>
+
                 <h4 className="text-gray-600 text-xs">
                   {item?.timestampCreate?.toDate ? 
                     item?.timestampCreate?.toDate()?.toLocaleDateString("en-IN", {

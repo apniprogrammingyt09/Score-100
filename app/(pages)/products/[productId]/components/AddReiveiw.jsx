@@ -56,7 +56,7 @@ export default function AddReview({ productId }) {
         className="w-full border border-lg px-4 py-2 focus:outline-none"
       />
       <Button
-        onClick={handleSubmit}
+        onPress={handleSubmit}
         isLoading={isLoading}
         isDisabled={isLoading}
       >
