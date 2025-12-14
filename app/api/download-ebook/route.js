@@ -5,6 +5,11 @@ import { headers } from 'next/headers';
 
 export async function GET(request) {
   try {
+    // Check if Firebase Admin is properly initialized
+    if (!adminDB) {
+      return NextResponse.json({ error: 'Service temporarily unavailable' }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId');
     const productId = searchParams.get('productId');
