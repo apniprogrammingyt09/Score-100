@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    optimizePackageImports: ['lucide-react', '@heroui/react'],
-    serverComponentsExternalPackages: ['firebase-admin'],
-    optimizeCss: true
+    optimizePackageImports: ['lucide-react', '@nextui-org/react'],
+    serverComponentsExternalPackages: ['firebase-admin']
   },
   images: {
     remotePatterns: [
