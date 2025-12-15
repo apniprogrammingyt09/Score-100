@@ -36,7 +36,7 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in'),
   alternates: {
     canonical: '/',
   },
@@ -82,8 +82,8 @@ export default function RootLayout({ children }) {
     '@type': 'Organization',
     name: 'Score 100 Books',
     description: 'Leading provider of question bank books for CBSE & MPBSE Board Exams',
-    url: process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app',
-    logo: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app'}/logo.png`,
+    url: process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in',
+    logo: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in'}/logo.png`,
     sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',

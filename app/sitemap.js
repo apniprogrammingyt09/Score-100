@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in';
   
   return [
     {
