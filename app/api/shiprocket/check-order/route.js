@@ -15,7 +15,6 @@ export async function GET(request) {
     });
     const authData = await authResponse.json();
     const token = authData.token;
-    const { token } = await authResponse.json();
 
     // Get all orders from Shiprocket
     const response = await fetch('https://apiv2.shiprocket.in/v1/external/orders', {
