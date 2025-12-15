@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in';
+  const baseUrl = 'https://www.score100.in';
   
   return [
     {
