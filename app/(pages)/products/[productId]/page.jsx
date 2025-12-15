@@ -30,7 +30,7 @@ export async function generateMetadata({ params }) {
         height: 600,
         alt: product.title,
       }],
-      type: 'product',
+      type: 'website',
       url: `/products/${productId}`,
     },
     twitter: {
