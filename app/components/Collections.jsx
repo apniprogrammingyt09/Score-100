@@ -67,7 +67,7 @@ export default function Collections({ collections }) {
                     </h1>
                   </div>
                   <div className="flex gap-4">
-                    <Link href={`/collections/${collection?.id}`}>
+                    <Link href={`/collections/${collection?.slug || collection?.id}`}>
                       <button className="bg-violet-900 text-white text-xs md:text-sm px-4 py-2 rounded-lg">
                         BROWSE BOOKS
                       </button>

@@ -34,7 +34,7 @@ export default function ReturnPolicy() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Return Process</h2>
           <ol className="list-decimal pl-6 mb-4">
-            <li>Contact our customer service at support@score100books.com</li>
+            <li>Contact our customer service at milestone.cbse@gmail.com</li>
             <li>Provide your order number and reason for return</li>
             <li>Receive return authorization and shipping instructions</li>
             <li>Pack items securely in original packaging</li>
@@ -60,12 +60,12 @@ export default function ReturnPolicy() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Damaged or Defective Items</h2>
-          <p className="mb-4">If you receive a damaged or defective item, please contact us immediately at support@score100books.com with photos of the damage. We will provide a prepaid return label and full refund or replacement.</p>
+          <p className="mb-4">If you receive a damaged or defective item, please contact us immediately at milestone.cbse@gmail.com with photos of the damage. We will provide a prepaid return label and full refund or replacement.</p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
-          <p>For any questions about returns, please contact us at support@score100books.com or call our customer service team.</p>
+          <p>For any questions about returns, please contact us at milestone.cbse@gmail.com or call our customer service team.</p>
         </section>
       </div>
     </div>

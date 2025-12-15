@@ -105,10 +105,9 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { name: "Mathematics", href: "/collections/mathematics" },
-                { name: "Science", href: "/collections/science" },
-                { name: "Social Science", href: "/collections/social-science" },
-                { name: "English", href: "/collections/english" },
-                { name: "Hindi", href: "/collections/hindi" },
+                { name: "Biology", href: "/collections/biology" },
+                { name: "Chemistry", href: "/collections/chemistry" },
+                { name: "Physics", href: "/collections/physics" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link href={item.href} className="text-gray-400 hover:text-white text-sm transition-colors">
@@ -128,7 +127,6 @@ export default function Footer() {
                 { name: "FAQs", href: "/contact-us#faq" },
                 { name: "Shipping Info", href: "/shipping" },
                 { name: "Return Policy", href: "/returns" },
-                { name: "Track Order", href: "/account" },
               ].map((item) => (
                 <li key={item.name}>
                   <Link href={item.href} className="text-gray-400 hover:text-white text-sm transition-colors">
@@ -153,9 +151,9 @@ export default function Footer() {
               <Link href="/terms" className="text-gray-500 hover:text-white text-sm transition-colors">
                 Terms of Service
               </Link>
-              <a href="mailto:support@score100books.com" className="flex items-center gap-2 text-gray-500 hover:text-white text-sm transition-colors">
+              <a href="mailto:milestone.cbse@gmail.com" className="flex items-center gap-2 text-gray-500 hover:text-white text-sm transition-colors">
                 <Mail size={14} />
-                support@score100books.com
+                milestone.cbse@gmail.com
               </a>
             </div>
           </div>

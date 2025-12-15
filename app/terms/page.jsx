@@ -49,7 +49,7 @@ export default function TermsOfService() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
-          <p>If you have any questions about these Terms of Service, please contact us at support@score100books.com</p>
+          <p>If you have any questions about these Terms of Service, please contact us at milestone.cbse@gmail.com</p>
         </section>
       </div>
     </div>

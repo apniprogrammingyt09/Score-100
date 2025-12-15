@@ -79,7 +79,7 @@ export default function ShippingInfo() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
-          <p>For shipping-related queries, contact us at support@score100books.com or call our customer service team.</p>
+          <p>For shipping-related queries, contact us at milestone.cbse@gmail.com or call our customer service team.</p>
         </section>
       </div>
     </div>
