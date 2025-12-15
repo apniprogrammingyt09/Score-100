@@ -1,6 +1,6 @@
 import { ProductCard } from "@/app/components/Products";
 import { getBrand } from "@/lib/firestore/brands/read_server";
-import { getProductsByBrand } from "@/lib/firestore/products/read_server";
+import { getProductsByBrand, getProducts } from "@/lib/firestore/products/read_server";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }) {
@@ -24,8 +24,13 @@ export default async function Page({ params }) {
     notFound();
   }
   
-  // Use the actual brand ID from the database
-  const products = await getProductsByBrand({ brandId: brand.id });
+  // Get all products and filter by brandIds array
+  const allProducts = await getProducts();
+  const products = allProducts?.filter(product => {
+    return product.brandIds?.includes(brand.id) || 
+           product.brandIds?.includes(boardId) || 
+           product.brandIds?.includes(brand.name);
+  }) || [];
   
   return (
     <main className="flex justify-center p-5 md:px-10 md:py-5 w-full">
