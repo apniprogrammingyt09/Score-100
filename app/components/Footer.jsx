@@ -84,7 +84,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold">Products</h3>
             <ul className="space-y-3">
               {[
-                { name: "Class 9 Books", href: "/categories/class-9" },
+                { name: "Class 9 Books", href: "/categories/class-09" },
                 { name: "Class 10 Books", href: "/categories/class-10" },
                 { name: "Class 11 Books", href: "/categories/class-11" },
                 { name: "Class 12 Books", href: "/categories/class-12" },
