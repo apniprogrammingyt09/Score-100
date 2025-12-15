@@ -21,6 +21,11 @@ export const metadata = {
     default: "Score 100 Books - Question Bank for Class 9-12 | CBSE & MPBSE",
     template: "%s | Score 100 Books"
   },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
   description: "Score 100 series of question bank books for CBSE & MPBSE Board Exams. Previous Year Papers, Solved PYQs, Revision Notes, Mindmaps for Class 9, 10, 11 & 12. Mathematics, Science, Social Science, English & Hindi.",
   keywords: ["CBSE question bank", "MPBSE books", "class 9 books", "class 10 books", "class 11 books", "class 12 books", "previous year papers", "solved PYQs", "revision notes", "mindmaps", "mathematics books", "science books", "social science books", "english books", "hindi books", "board exam preparation", "Score 100 series"],
   authors: [{ name: "Score 100 Books" }],
@@ -117,6 +122,10 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />

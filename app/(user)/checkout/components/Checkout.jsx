@@ -6,7 +6,7 @@ import {
   verifyRazorpayPayment,
 } from "@/lib/firestore/checkout/write";
 import { useUserAddresses } from "@/lib/firestore/addresses/read";
-import { saveUserAddress } from "@/lib/firestore/addresses/write";
+import { saveUserAddress, deleteUserAddress } from "@/lib/firestore/addresses/write";
 import { Button } from "@nextui-org/react";
 import confetti from "canvas-confetti";
 import { CheckSquare2Icon, CreditCard, Book, Smartphone, Plus, MapPin } from "lucide-react";
@@ -34,6 +34,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddress, setNewAddress] = useState(null);
+  const [editingAddress, setEditingAddress] = useState(null);
   const [shippingRates, setShippingRates] = useState([]);
   const [selectedShipping, setSelectedShipping] = useState(null);
   const [loadingRates, setLoadingRates] = useState(false);
@@ -278,28 +279,64 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
               <div className="space-y-2">
                 <h3 className="font-medium text-gray-700">Saved Addresses</h3>
                 {savedAddresses.map((addr) => (
-                  <label key={addr.id} className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="address"
-                      checked={selectedAddress?.id === addr.id}
-                      onChange={() => {
-                        setSelectedAddress(addr);
-                        if (addr.pincode) {
-                          console.log('Fetching rates for pincode:', addr.pincode);
-                          fetchShippingRates(addr.pincode.toString());
-                        }
-                      }}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{addr.fullName}</div>
-                      <div className="text-sm text-gray-600">
-                        {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
+                  <div key={addr.id} className="border rounded-lg p-3 hover:bg-gray-50">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="address"
+                        checked={selectedAddress?.id === addr.id}
+                        onChange={() => {
+                          setSelectedAddress(addr);
+                          if (addr.pincode) {
+                            console.log('Fetching rates for pincode:', addr.pincode);
+                            fetchShippingRates(addr.pincode.toString());
+                          }
+                        }}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">{addr.fullName}</div>
+                        <div className="text-sm text-gray-600">
+                          {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
+                        </div>
+                        <div className="text-sm text-gray-500">{addr.mobile}</div>
                       </div>
-                      <div className="text-sm text-gray-500">{addr.mobile}</div>
                     </div>
-                  </label>
+                    <div className="flex justify-end gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        onClick={() => {
+                          setEditingAddress(addr);
+                          setNewAddress(addr);
+                          setShowAddressForm(true);
+                        }}
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50 px-4 py-1"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="bordered"
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this address?')) {
+                            try {
+                              await deleteUserAddress({ uid: user?.uid, addressId: addr.id });
+                              if (selectedAddress?.id === addr.id) {
+                                setSelectedAddress(null);
+                              }
+                              toast.success('Address deleted!');
+                            } catch (error) {
+                              toast.error('Failed to delete address');
+                            }
+                          }
+                        }}
+                        className="text-red-600 border-red-300 hover:bg-red-50 px-4 py-1"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -307,7 +344,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
             {/* New Address Form */}
             {showAddressForm && (
               <div className="border rounded-lg p-4 bg-gray-50">
-                <h3 className="font-medium mb-3">Add New Address</h3>
+                <h3 className="font-medium mb-3">{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <input
                     type="text"
@@ -318,9 +355,14 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                   />
                   <input
                     type="tel"
-                    placeholder="Mobile Number"
+                    placeholder="Mobile Number (10 digits)"
                     value={newAddress?.mobile ?? ""}
-                    onChange={(e) => setNewAddress({...newAddress, mobile: e.target.value})}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setNewAddress({...newAddress, mobile: value});
+                    }}
+                    pattern="[6-9][0-9]{9}"
+                    maxLength="10"
                     className="border px-3 py-2 rounded-lg focus:outline-none"
                   />
                   <input
@@ -363,19 +405,25 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                         toast.error('Please fill all required fields');
                         return;
                       }
+                      if (!/^[6-9][0-9]{9}$/.test(newAddress.mobile)) {
+                        toast.error('Please enter a valid 10-digit mobile number starting with 6-9');
+                        return;
+                      }
                       try {
                         const addressWithEmail = { ...newAddress, email: user?.email };
-                        await saveUserAddress({ uid: user?.uid, address: addressWithEmail });
-                        setSelectedAddress(addressWithEmail);
+                        const addressId = editingAddress ? editingAddress.id : null;
+                        await saveUserAddress({ uid: user?.uid, address: addressWithEmail, addressId });
+                        setSelectedAddress({ ...addressWithEmail, id: addressId || addressWithEmail.id });
                         setShowAddressForm(false);
                         setNewAddress(null);
-                        toast.success('Address saved!');
+                        setEditingAddress(null);
+                        toast.success(editingAddress ? 'Address updated!' : 'Address saved!');
                       } catch (error) {
                         toast.error('Failed to save address');
                       }
                     }}
                   >
-                    Save Address
+                    {editingAddress ? 'Update Address' : 'Save Address'}
                   </Button>
                   <Button
                     size="sm"
@@ -383,6 +431,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                     onClick={() => {
                       setShowAddressForm(false);
                       setNewAddress(null);
+                      setEditingAddress(null);
                     }}
                   >
                     Cancel
