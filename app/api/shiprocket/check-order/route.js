@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('orderId');
+    const orderId = request.nextUrl.searchParams.get('orderId');
 
     // Get Shiprocket token
-    const authResponse = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:3000'}/api/shiprocket/auth`, {
+    const authResponse = await fetch('https://apiv2.shiprocket.in/v1/external/auth/login', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: process.env.SHIPROCKET_EMAIL,
+        password: process.env.SHIPROCKET_PASSWORD,
+      }),
     });
+    const authData = await authResponse.json();
+    const token = authData.token;
     const { token } = await authResponse.json();
 
     // Get all orders from Shiprocket
