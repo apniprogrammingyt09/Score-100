@@ -101,7 +101,7 @@ export default function Hero() {
 
               {/* Yellow stat card */}
               <div className="bg-yellow-200 rounded-2xl p-4 shadow-xl">
-                <h2 className="text-3xl font-bold text-gray-900">10+</h2>
+                <div className="text-3xl font-bold text-gray-900">10+</div>
                 <p className="text-gray-800 text-xs mt-1 leading-snug font-medium">
                   Years of Previous Papers
                 </p>
@@ -113,7 +113,7 @@ export default function Hero() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-indigo-200">Students Helped</p>
-                  <h3 className="text-2xl font-bold">50,000+</h3>
+                  <div className="text-2xl font-bold">50,000+</div>
                 </div>
                 <div className="flex items-end gap-1 h-16">
                   {[40, 60, 80, 50, 100, 70].map((h, i) => (
@@ -195,7 +195,7 @@ export default function Hero() {
             {/* Success card (center) - shifted right */}
             <div className="w-[340px] bg-[#050a3d] text-white rounded-[30px] p-6 shadow-2xl ml-8">
               <p className="text-sm text-indigo-200 mb-1">Students Helped</p>
-              <h3 className="text-4xl font-bold">50,000+</h3>
+              <div className="text-4xl font-bold">50,000+</div>
               <div className="relative mt-6 h-40 grid grid-cols-10 gap-2 items-end">
                 <div className="absolute inset-x-0 bottom-5 h-px bg-white/20" />
                 {[55, 28, 38, 24, 100, 54, 68, 22, 82, 62].map((h, i) => (
@@ -226,7 +226,7 @@ export default function Hero() {
 
             {/* Yellow stat card (right) - shifted right to overlap image more */}
             <div className="w-[260px] bg-yellow-200 rounded-3xl p-7 shadow-xl z-30 ml-12">
-              <h2 className="text-5xl font-bold text-gray-900">10+</h2>
+              <div className="text-5xl font-bold text-gray-900">10+</div>
               <p className="text-gray-800 text-base mt-3 leading-snug font-medium">
                 Years of Previous<br />Question Papers
               </p>

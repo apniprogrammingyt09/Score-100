@@ -59,12 +59,12 @@ export default function Collections({ collections }) {
               <div className="flex gap-4 bg-gradient-to-tr to-[#d9e2f1] from-[#cce7f5] p-7 w-full rounded-xl h-full">
                 <div className="w-full flex flex-col gap-2">
                   <div className="flex flex-col gap-4">
-                    <h1 className="md:text-lg text-base font-semibold">
+                    <h2 className="md:text-lg text-base font-semibold">
                       {collection?.title}
-                    </h1>
-                    <h1 className="text-gray-600 text-xs md:text-sm max-w-96 line-clamp-2">
+                    </h2>
+                    <p className="text-gray-600 text-xs md:text-sm max-w-96 line-clamp-2">
                       {collection?.subTitle}
-                    </h1>
+                    </p>
                   </div>
                   <div className="flex gap-4">
                     <Link href={`/collections/${collection?.slug || collection?.id}`}>

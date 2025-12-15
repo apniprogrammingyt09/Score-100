@@ -482,7 +482,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
       </section>
       <div className="flex-1 flex flex-col gap-3">
         <section className="flex flex-col gap-3 border rounded-xl p-4">
-          <h1 className="text-xl">Products</h1>
+          <h2 className="text-xl">Products</h2>
           <div className="flex flex-col gap-2">
             {productList?.map((item, index) => {
               const isEbook = item?.format === "ebook";
@@ -508,7 +508,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                     )}
                   </div>
                   <div className="flex-1 flex flex-col">
-                    <h1 className="text-sm font-medium">{item?.product?.title}</h1>
+                    <h3 className="text-sm font-medium">{item?.product?.title}</h3>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         isEbook 
@@ -517,15 +517,15 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                       }`}>
                         {isEbook ? "eBook (PDF)" : "Hard Copy"}
                       </span>
-                      <h3 className="text-green-600 font-semibold text-xs">
+                      <span className="text-green-600 font-semibold text-xs">
                         ₹{price} × {item?.quantity}
-                      </h3>
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">
+                    <span className="text-sm font-semibold">
                       ₹{price * item?.quantity}
-                    </h3>
+                    </span>
                   </div>
                 </div>
               );
@@ -549,8 +549,8 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
               </div>
             )}
             <div className="flex justify-between w-full items-center p-2 font-bold border-t border-gray-300 bg-gray-50 rounded">
-              <h1 className="text-lg">Total Amount</h1>
-              <h1 className="text-xl text-green-600">₹{totalPrice}</h1>
+              <span className="text-lg">Total Amount</span>
+              <span className="text-xl text-green-600">₹{totalPrice}</span>
             </div>
           </div>
         </section>
@@ -598,10 +598,10 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
           </div>
           <div className="flex gap-2 items-center mt-2">
             <CheckSquare2Icon className="text-indigo-500" size={16} />
-            <h4 className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600">
               I agree with the{" "}
               <span className="text-indigo-600 hover:underline cursor-pointer">terms & conditions</span>
-            </h4>
+            </span>
           </div>
           <Button
             isLoading={isLoading}
