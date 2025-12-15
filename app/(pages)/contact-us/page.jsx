@@ -5,20 +5,6 @@ import { Button } from '@nextui-org/react';
 import { ChevronDown, ChevronUp, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export const metadata = {
-  title: 'Contact Us | Score 100 Books - Question Bank Store',
-  description: 'Get in touch with Score 100 Books for any queries about our question bank books for CBSE & MPBSE board exams. Customer support for Class 9, 10, 11 & 12 books.',
-  keywords: 'contact Score 100 Books, customer support, question bank help, CBSE MPBSE books support, educational books contact',
-  openGraph: {
-    title: 'Contact Us | Score 100 Books',
-    description: 'Get in touch with Score 100 Books for any queries about our question bank books.',
-    type: 'website',
-  },
-  alternates: {
-    canonical: '/contact-us',
-  },
-};
-
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',

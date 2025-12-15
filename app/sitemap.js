@@ -73,7 +73,9 @@ export default async function sitemap() {
   // Product pages
   const productPages = products?.map((product) => ({
     url: `${baseUrl}/products/${product.id}`,
-    lastModified: product.timestampUpdate?.toDate() || new Date(),
+    lastModified: product.timestampUpdate && typeof product.timestampUpdate.toDate === 'function' 
+      ? product.timestampUpdate.toDate() 
+      : new Date(),
     changeFrequency: 'weekly',
     priority: 0.7,
   })) || [];
@@ -81,7 +83,9 @@ export default async function sitemap() {
   // Category pages
   const categoryPages = categories?.map((category) => ({
     url: `${baseUrl}/categories/${category.slug || category.id}`,
-    lastModified: category.timestampUpdate?.toDate() || new Date(),
+    lastModified: category.timestampUpdate && typeof category.timestampUpdate.toDate === 'function'
+      ? category.timestampUpdate.toDate()
+      : new Date(),
     changeFrequency: 'weekly',
     priority: 0.6,
   })) || [];
@@ -89,7 +93,9 @@ export default async function sitemap() {
   // Collection pages
   const collectionPages = collections?.map((collection) => ({
     url: `${baseUrl}/collections/${collection.slug || collection.id}`,
-    lastModified: collection.timestampUpdate?.toDate() || new Date(),
+    lastModified: collection.timestampUpdate && typeof collection.timestampUpdate.toDate === 'function'
+      ? collection.timestampUpdate.toDate()
+      : new Date(),
     changeFrequency: 'weekly',
     priority: 0.6,
   })) || [];
