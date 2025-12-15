@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://docs-reader-store.vercel.app</loc>
+    <loc>https://score100.in</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/products</loc>
+    <loc>https://score100.in/products</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/categories</loc>
+    <loc>https://score100.in/categories</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/brands</loc>
+    <loc>https://score100.in/brands</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/collections</loc>
+    <loc>https://score100.in/collections</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/about</loc>
+    <loc>https://score100.in/about</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://docs-reader-store.vercel.app/contact</loc>
+    <loc>https://score100.in/contact</loc>
     <lastmod>2024-12-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
