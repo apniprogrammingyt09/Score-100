@@ -1,40 +1,48 @@
-import { shiprocketAPI } from '@/lib/shiprocket';
+async function getShiprocketToken() {
+  const response = await fetch('https://apiv2.shiprocket.in/v1/external/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: process.env.SHIPROCKET_EMAIL,
+      password: process.env.SHIPROCKET_PASSWORD,
+    }),
+  });
+  const data = await response.json();
+  return data.token;
+}
 
 export async function POST(request) {
   try {
-    const { delivery_postcode, weight } = await request.json();
-
-    // Mock shipping rates for testing
-    const mockRates = [
-      {
-        courier_company_id: 1,
-        courier_name: "Delhivery",
-        rate: Math.ceil(weight * 50),
-        estimated_delivery_days: "3-5"
-      },
-      {
-        courier_company_id: 2,
-        courier_name: "Blue Dart",
-        rate: Math.ceil(weight * 75),
-        estimated_delivery_days: "2-3"
-      },
-      {
-        courier_company_id: 3,
-        courier_name: "DTDC",
-        rate: Math.ceil(weight * 45),
-        estimated_delivery_days: "4-6"
+    const { delivery_postcode, weight, cod = true } = await request.json();
+    
+    const token = await getShiprocketToken();
+    
+    const url = `https://apiv2.shiprocket.in/v1/external/courier/serviceability/?pickup_postcode=${process.env.SHIPROCKET_PICKUP_PINCODE}&delivery_postcode=${delivery_postcode}&weight=${weight}&cod=${cod ? 1 : 0}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
-    ];
-
-    return Response.json({
-      success: true,
-      rates: mockRates
     });
+    
+    const data = await response.json();
+    
+    if (data.status === 200 && data.data?.available_courier_companies) {
+      const rates = data.data.available_courier_companies.map(courier => ({
+        courier_company_id: courier.courier_company_id,
+        courier_name: courier.courier_name,
+        rate: courier.rate,
+        estimated_delivery_days: courier.estimated_delivery_days || '3-5'
+      }));
+      
+      return Response.json({ success: true, rates });
+    } else {
+      return Response.json({ success: false, rates: [], error: 'No courier services available' });
+    }
 
   } catch (error) {
-    return Response.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 }
