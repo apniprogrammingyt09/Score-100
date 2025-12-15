@@ -113,7 +113,7 @@ export async function POST(request) {
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6;">
               <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px;">Need help? Contact us at <a href="mailto:${process.env.SMTP_EMAIL}" style="color: #667eea; text-decoration: none;">${process.env.SMTP_EMAIL}</a></p>
-              <p style="margin: 0; color: #adb5bd; font-size: 12px;">© 2024 Score 100 Books. All rights reserved.</p>
+              <p style="margin: 0; color: #adb5bd; font-size: 12px;">© 2025 Score 100 Books. All rights reserved.</p>
             </div>
             
           </div>

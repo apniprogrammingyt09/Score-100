@@ -40,7 +40,7 @@ export default function Hero() {
             Complete Question Bank for CBSE & MPBSE Classes 9-12 with Previous Year Papers, Revision Notes & Practice Tests
           </p>
           <div className="mt-4 md:mt-6">
-            <Link href="/categories">
+            <Link href="/search">
               <button className="group inline-flex items-center gap-2 bg-indigo-900 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-full font-semibold shadow-lg hover:translate-y-[-1px] transition-transform text-sm md:text-base">
                 Browse Books by Class
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
