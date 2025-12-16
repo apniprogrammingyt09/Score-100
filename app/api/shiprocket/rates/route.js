@@ -17,7 +17,19 @@ export async function POST(request) {
     
     const token = await getShiprocketToken();
     
-    const url = `https://apiv2.shiprocket.in/v1/external/courier/serviceability/?pickup_postcode=${process.env.SHIPROCKET_PICKUP_PINCODE}&delivery_postcode=${delivery_postcode}&weight=${weight}&cod=${cod ? 1 : 0}`;
+    // Get pickup locations first
+    const pickupResponse = await fetch('https://apiv2.shiprocket.in/v1/external/settings/company/pickup', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const pickupData = await pickupResponse.json();
+    const pickupPostcode = pickupData.data?.[0]?.pin_code || process.env.SHIPROCKET_PICKUP_PINCODE;
+    
+    const url = `https://apiv2.shiprocket.in/v1/external/courier/serviceability/?pickup_postcode=${pickupPostcode}&delivery_postcode=${delivery_postcode}&weight=${weight}&cod=${cod ? 1 : 0}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -37,7 +49,8 @@ export async function POST(request) {
         estimated_delivery_days: courier.estimated_delivery_days || '3-5'
       }));
       
-      return Response.json({ success: true, rates });
+      console.log(`Found ${rates.length} courier options for pincode ${delivery_postcode}`);
+      return Response.json({ success: true, rates, total: rates.length });
     } else {
       return Response.json({ success: false, rates: [], error: 'No courier services available' });
     }

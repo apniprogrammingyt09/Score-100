@@ -139,7 +139,7 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
     return prev + curr?.quantity * price;
   }, 0);
 
-  const shippingCharge = hasPhysical && selectedShipping ? selectedShipping.rate : 0;
+  const shippingCharge = hasPhysical && selectedShipping ? (subtotal >= 500 ? 0 : selectedShipping.rate) : 0;
   const totalPrice = subtotal + shippingCharge;
 
   const handleRazorpayPayment = async () => {
@@ -227,8 +227,8 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
         throw new Error("Please select a delivery address");
       }
       
-      // Validate shipping option for physical products
-      if (hasPhysical && !selectedShipping) {
+      // Validate shipping option for physical products (only if subtotal < 500)
+      if (hasPhysical && subtotal < 500 && !selectedShipping) {
         throw new Error("Please select a delivery option");
       }
 
@@ -444,11 +444,21 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
             {hasPhysical && selectedAddress?.pincode && (
               <div className="border rounded-lg p-4 bg-blue-50">
                 <h3 className="font-medium mb-3 text-blue-900">Delivery Options</h3>
-                {loadingRates ? (
+                {subtotal >= 500 ? (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <span className="font-medium text-green-700">FREE Delivery</span>
+                    </div>
+                    <div className="text-sm text-green-600 mt-1">Your order qualifies for free delivery!</div>
+                  </div>
+                ) : loadingRates ? (
                   <div className="text-sm text-blue-600">Calculating delivery charges...</div>
                 ) : shippingRates.length > 0 ? (
                   <div className="space-y-2">
-                    {shippingRates.slice(0, 3).map((rate, index) => (
+                    {shippingRates.map((rate, index) => (
                       <label key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg cursor-pointer hover:border-blue-300">
                         <div className="flex items-center gap-3">
                           <input
@@ -539,7 +549,9 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
             {hasPhysical && selectedShipping && (
               <div className="flex justify-between items-center p-2">
                 <span className="text-gray-600">Delivery ({selectedShipping.courier_name})</span>
-                <span className="font-medium text-green-600">₹{selectedShipping.rate}</span>
+                <span className={`font-medium ${subtotal >= 500 ? 'text-green-600' : 'text-gray-900'}`}>
+                  {subtotal >= 500 ? 'FREE' : `₹${selectedShipping.rate}`}
+                </span>
               </div>
             )}
             {hasPhysical && !selectedShipping && selectedAddress && (
