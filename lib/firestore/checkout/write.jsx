@@ -1,9 +1,9 @@
 import { db } from "@/lib/firebase";
 import { collection, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 
-export const createRazorpayOrder = async ({ uid, products, address }) => {
-  // Calculate total amount based on format (eBook vs physical)
-  const totalAmount = products.reduce((total, item) => {
+export const createRazorpayOrder = async ({ uid, products, address, totalAmount, coupon, shippingCharge }) => {
+  // Use passed totalAmount if provided, otherwise calculate
+  const calculatedAmount = totalAmount || products.reduce((total, item) => {
     const isEbook = item?.format === "ebook";
     const price = isEbook 
       ? (item?.product?.ebookSalePrice || item?.product?.salePrice)
@@ -20,12 +20,13 @@ export const createRazorpayOrder = async ({ uid, products, address }) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      amount: totalAmount,
+      amount: calculatedAmount,
       currency: "INR",
       receipt: checkoutId,
       notes: {
         checkoutId,
         uid,
+        coupon: coupon?.code || null,
       },
     }),
   });
@@ -69,7 +70,7 @@ export const createRazorpayOrder = async ({ uid, products, address }) => {
   await setDoc(ref, {
     id: checkoutId,
     razorpayOrderId: orderData.orderId,
-    amount: totalAmount,
+    amount: calculatedAmount,
     currency: "INR",
     line_items: line_items,
     address: address,
@@ -77,13 +78,15 @@ export const createRazorpayOrder = async ({ uid, products, address }) => {
     status: "pending",
     hasEbooks: hasEbooks,
     hasPhysical: hasPhysical,
+    coupon: coupon || null,
+    shippingCharge: shippingCharge || 0,
     createdAt: Timestamp.now(),
   });
 
   return {
     checkoutId,
     razorpayOrderId: orderData.orderId,
-    amount: totalAmount,
+    amount: calculatedAmount,
     currency: "INR",
   };
 };

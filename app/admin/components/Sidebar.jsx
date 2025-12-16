@@ -14,6 +14,7 @@ import {
   ShoppingCart,
   Star,
   User,
+  Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -65,6 +66,11 @@ export default function Sidebar() {
       name: "Newsletter",
       link: "/admin/newsletter",
       icon: <Mail className="h-5 w-5" />,
+    },
+    {
+      name: "Coupons",
+      link: "/admin/coupons",
+      icon: <Ticket className="h-5 w-5" />,
     },
     {
       name: "Admins",

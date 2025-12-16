@@ -38,6 +38,9 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
   const [shippingRates, setShippingRates] = useState([]);
   const [selectedShipping, setSelectedShipping] = useState(null);
   const [loadingRates, setLoadingRates] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
   const { data: savedAddresses } = useUserAddresses({ uid: user?.uid });
@@ -140,7 +143,8 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
   }, 0);
 
   const shippingCharge = hasPhysical && selectedShipping ? (subtotal >= 500 ? 0 : selectedShipping.rate) : 0;
-  const totalPrice = subtotal + shippingCharge;
+  const couponDiscount = appliedCoupon?.discount || 0;
+  const totalPrice = subtotal + shippingCharge - couponDiscount;
 
   const handleRazorpayPayment = async () => {
     try {
@@ -154,11 +158,14 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
         uid: user?.uid,
         products: productList,
         address: getSelectedAddressData(),
+        totalAmount: totalPrice,
+        coupon: appliedCoupon,
+        shippingCharge: shippingCharge
       });
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderData.amount * 100,
+        amount: totalPrice * 100,
         currency: orderData.currency,
         name: "Score 100 Books",
         description: "Purchase from Score 100 Books",
@@ -241,6 +248,38 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
       toast.error(error?.message);
       setIsLoading(false);
     }
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    setCouponLoading(true);
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode, subtotal })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAppliedCoupon(data.coupon);
+        toast.success(`Coupon applied! ₹${data.coupon.discount} discount`);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error('Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    toast.success('Coupon removed');
   };
 
   return (
@@ -554,6 +593,12 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
                 </span>
               </div>
             )}
+            {appliedCoupon && (
+              <div className="flex justify-between items-center p-2">
+                <span className="text-gray-600">Coupon ({appliedCoupon.code})</span>
+                <span className="font-medium text-green-600">-₹{appliedCoupon.discount}</span>
+              </div>
+            )}
             {hasPhysical && !selectedShipping && selectedAddress && (
               <div className="flex justify-between items-center p-2">
                 <span className="text-gray-600">Delivery</span>
@@ -563,6 +608,34 @@ export default function Checkout({ productList, hasEbooks, hasPhysical }) {
             <div className="flex justify-between w-full items-center p-2 font-bold border-t border-gray-300 bg-gray-50 rounded">
               <span className="text-lg">Total Amount</span>
               <span className="text-xl text-green-600">₹{totalPrice}</span>
+            </div>
+            
+            {/* Coupon Section */}
+            <div className="border-t pt-2">
+              <div className="flex gap-2 items-center p-2">
+                <input
+                  type="text"
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="flex-1 border px-3 py-2 rounded-lg focus:outline-none text-sm"
+                  disabled={appliedCoupon}
+                />
+                {appliedCoupon ? (
+                  <Button size="sm" variant="bordered" onClick={removeCoupon}>
+                    Remove
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    onClick={applyCoupon}
+                    isLoading={couponLoading}
+                    disabled={!couponCode.trim()}
+                  >
+                    Apply
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </section>
