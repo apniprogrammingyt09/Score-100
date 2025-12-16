@@ -20,7 +20,7 @@ export async function POST(request) {
     // Send form to admin
     const adminMailOptions = {
       from: process.env.SMTP_EMAIL,
-      to: 'krish70bhagat@gmail.com',
+      to: process.env.ADMIN_EMAIL,
       subject: `Contact Form: ${subject}`,
       html: `
         <h3>New Contact Form Submission</h3>
