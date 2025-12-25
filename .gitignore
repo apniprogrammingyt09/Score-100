@@ -38,3 +38,4 @@ next-env.d.ts
 # Protected eBook files (don't commit actual PDFs)
 /protected-ebooks/*.pdf
 /public/ebooks/*.pdf
+.env
