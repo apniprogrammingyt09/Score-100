@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { NextResponse } from 'next/server';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -12,7 +13,7 @@ export async function POST(request) {
     const file = formData.get('file');
     
     if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -21,7 +22,7 @@ export async function POST(request) {
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          resource_type: 'raw',
+          resource_type: 'auto',
           folder: 'ebooks',
           public_id: `ebook_${Date.now()}`,
         },
@@ -32,15 +33,13 @@ export async function POST(request) {
       ).end(buffer);
     });
 
-    return Response.json({ 
-      success: true, 
-      url: result.secure_url,
-      publicId: result.public_id 
+    return NextResponse.json({ 
+      url: result.secure_url
     });
 
   } catch (error) {
-    return Response.json({ 
-      success: false, 
+    console.error('Cloudinary upload error:', error);
+    return NextResponse.json({ 
       error: error.message 
     }, { status: 500 });
   }
