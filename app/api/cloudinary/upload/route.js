@@ -22,9 +22,8 @@ export async function POST(request) {
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          resource_type: 'auto',
+          resource_type: 'raw',
           folder: 'ebooks',
-          public_id: `ebook_${Date.now()}`,
         },
         (error, result) => {
           if (error) reject(error);
