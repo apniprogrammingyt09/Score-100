@@ -27,7 +27,7 @@ export default function EbookUpload({ onUpload, currentUrl, onRemove }) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload-ebook', {
+      const response = await fetch('/api/cloudinary/upload', {
         method: 'POST',
         body: formData,
       });

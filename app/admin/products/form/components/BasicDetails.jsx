@@ -360,7 +360,7 @@ export default function BasicDetails({ data, handleData }) {
                           formData.append("file", file);
                           formData.append("productId", data?.id || "new");
 
-                          const response = await fetch("/api/upload-ebook", {
+                          const response = await fetch("/api/cloudinary/upload", {
                             method: "POST",
                             body: formData,
                           });

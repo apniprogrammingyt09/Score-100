@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { adminDB } from '@/lib/firebase_admin';
-import { storage, EBOOK_BUCKET_ID } from '@/lib/appwrite';
 import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
@@ -66,29 +65,22 @@ export async function GET(request) {
     }
 
     const productData = productDoc.data();
-    if (!productData.isEbook && !productData.ebookFileId && !productData.ebookUrl) {
+    if (!productData.isEbook && !productData.ebookUrl) {
       return NextResponse.json({ error: 'Access denied: Not an eBook product' }, { status: 403 });
     }
-    const ebookFileId = productData.ebookFileId;
+    
     const ebookUrl = productData.ebookUrl;
 
-    if (!ebookFileId && !ebookUrl) {
+    if (!ebookUrl) {
       return NextResponse.json({ error: 'eBook not found' }, { status: 404 });
     }
 
-    let fileBuffer;
-    
-    if (ebookFileId) {
-      // Get file from Appwrite Storage
-      fileBuffer = await storage.getFileDownload(EBOOK_BUCKET_ID, ebookFileId);
-    } else if (ebookUrl) {
-      // Fallback: fetch from URL (for old uploads)
-      const response = await fetch(ebookUrl);
-      if (!response.ok) {
-        return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
-      }
-      fileBuffer = await response.arrayBuffer();
+    // Fetch from Cloudinary URL
+    const response = await fetch(ebookUrl);
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
     }
+    const fileBuffer = await response.arrayBuffer();
     
     const productTitle = productDoc.data().title || 'ebook';
     const filename = `${productTitle.replace(/[^a-zA-Z0-9\s]/g, '_')}.pdf`;
