@@ -4,6 +4,10 @@ import { ID } from 'appwrite';
 
 export async function POST(request) {
   try {
+    // Debug: Check env vars
+    if (!process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || !process.env.APPWRITE_API_KEY) {
+      return NextResponse.json({ error: 'Missing Appwrite credentials' }, { status: 500 });
+    }
     const formData = await request.formData();
     const file = formData.get('file');
 
@@ -32,6 +36,11 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error('Error details:', error.message, error.code, error.type);
+    return NextResponse.json({ 
+      error: 'Upload failed', 
+      details: error.message,
+      code: error.code 
+    }, { status: 500 });
   }
 }
