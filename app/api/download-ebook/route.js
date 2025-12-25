@@ -6,8 +6,20 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const url = new URL(request.url);
-    const ebookUrl = url.searchParams.get('url');
+    let ebookUrl = url.searchParams.get('url');
     const filename = url.searchParams.get('filename') || 'ebook.pdf';
+    const productId = url.searchParams.get('productId'); // For fallback lookup
+    
+    // Legacy support - if old parameters are used, return error message
+    const orderId = url.searchParams.get('orderId');
+    const uid = url.searchParams.get('uid');
+    
+    if (!ebookUrl && (orderId || productId || uid)) {
+      return NextResponse.json({ 
+        error: 'Please refresh the page to download your eBook',
+        legacy: true 
+      }, { status: 400 });
+    }
 
     if (!ebookUrl) {
       return NextResponse.json({ error: 'Missing eBook URL' }, { status: 400 });
@@ -20,6 +32,14 @@ export async function GET(request) {
     
     if (!referer || !referer.includes(host)) {
       return NextResponse.json({ error: 'Access denied: Invalid request source' }, { status: 403 });
+    }
+
+    // If URL contains appwrite, try to redirect to Cloudinary version
+    if (ebookUrl.includes('appwrite.io')) {
+      return NextResponse.json({ 
+        error: 'This eBook is being migrated to new storage. Please try again in a few minutes.',
+        needsUpdate: true 
+      }, { status: 503 });
     }
 
     // Fetch from Cloudinary URL
