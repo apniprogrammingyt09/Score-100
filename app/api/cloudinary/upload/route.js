@@ -9,6 +9,13 @@ cloudinary.config({
 
 export async function POST(request) {
   try {
+    // Debug: Check if env vars are loaded
+    console.log('Cloudinary config:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'present' : 'missing'
+    });
+
     const formData = await request.formData();
     const file = formData.get('file');
     
@@ -26,8 +33,12 @@ export async function POST(request) {
           folder: 'ebooks',
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            console.error('Cloudinary error details:', error);
+            reject(error);
+          } else {
+            resolve(result);
+          }
         }
       ).end(buffer);
     });
