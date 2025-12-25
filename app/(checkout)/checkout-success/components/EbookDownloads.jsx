@@ -48,8 +48,13 @@ export default function EbookDownloads({ ebooks, orderId, uid }) {
                 <span className="text-xs text-emerald-600">PDF eBook</span>
               </div>
               <a
-                href={`/api/download-ebook?orderId=${orderId}&productId=${ebook.productId}&uid=${uid}`}
-                className="flex-shrink-0 p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                href={ebook.ebookUrl ? `/api/download-ebook?url=${encodeURIComponent(ebook.ebookUrl)}&filename=${encodeURIComponent(ebook.name + '.pdf')}` : '#'}
+                className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
+                  ebook.ebookUrl 
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                onClick={!ebook.ebookUrl ? (e) => e.preventDefault() : undefined}
               >
                 <Download size={18} />
               </a>

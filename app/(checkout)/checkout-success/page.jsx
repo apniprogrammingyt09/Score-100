@@ -1,101 +1,131 @@
+"use client";
+
+import { useEffect, useState } from 'react';
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
-import { admin, adminDB } from "@/lib/firebase_admin";
 import Link from "next/link";
 import SuccessMessage from "./components/SuccessMessage";
 import EbookDownloads from "./components/EbookDownloads";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, setDoc, Timestamp, updateDoc, increment } from "firebase/firestore";
 
-const fetchCheckoutSession = async (checkoutId, uid) => {
-  // Fetch checkout directly using uid from URL
-  const doc = await adminDB
-    .doc(`users/${uid}/checkout_sessions/${checkoutId}`)
-    .get();
-
-  if (!doc.exists) {
-    throw new Error("Checkout session not found");
-  }
-
-  const checkoutData = doc.data();
+export default function Page({ searchParams }) {
+  const [checkout, setCheckout] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Verify payment is completed
-  if (checkoutData.status !== "paid") {
-    throw new Error("Payment not completed");
-  }
-
-  return checkoutData;
-};
-
-const processOrder = async ({ checkout }) => {
-  const orderId = checkout?.paymentId || checkout?.id;
-  const order = await adminDB.doc(`orders/${orderId}`).get();
-  if (order.exists) {
-    return false; // Order already processed
-  }
-  const uid = checkout?.uid;
-
-  await adminDB.doc(`orders/${orderId}`).set({
-    checkout: checkout,
-    uid: uid,
-    id: orderId,
-    paymentMode: "prepaid",
-    status: "pending",
-    timestampCreate: admin.firestore.Timestamp.now(),
-  });
-
-  const productList = checkout?.line_items?.map((item) => {
-    return {
-      productId: item?.productId,
-      quantity: item?.quantity,
-    };
-  });
-
-  const user = await adminDB.doc(`users/${uid}`).get();
-
-  // Remove purchased items from cart
-  const productIdsList = productList?.map((item) => item?.productId);
-  const currentCarts = user?.data()?.carts ?? [];
-  
-  const newCartList = currentCarts.filter((cartItem) => {
-    const cartProductId = cartItem?.id?.replace(/-ebook$/, "");
-    return !productIdsList.includes(cartProductId);
-  });
-
-  await adminDB.doc(`users/${uid}`).set(
-    {
-      carts: newCartList,
-    },
-    { merge: true }
-  );
-
-  // Update product order counts
-  const batch = adminDB.batch();
-
-  productList?.forEach((item) => {
-    if (item?.productId) {
-      batch.update(adminDB.doc(`products/${item?.productId}`), {
-        orders: admin.firestore.FieldValue.increment(item?.quantity ?? 1),
-      });
-    }
-  });
-
-  await batch.commit();
-  return true;
-};
-
-export default async function Page({ searchParams }) {
   const { checkout_id, uid } = searchParams;
-  
-  if (!checkout_id || !uid) {
-    throw new Error("Invalid checkout URL");
+
+  useEffect(() => {
+    if (!checkout_id || !uid) {
+      setError('Invalid checkout URL');
+      setLoading(false);
+      return;
+    }
+
+    const processCheckout = async () => {
+      try {
+        // Fetch checkout session
+        const checkoutRef = doc(db, `users/${uid}/checkout_sessions/${checkout_id}`);
+        const checkoutDoc = await getDoc(checkoutRef);
+
+        if (!checkoutDoc.exists()) {
+          throw new Error('Checkout session not found');
+        }
+
+        const checkoutData = checkoutDoc.data();
+        
+        if (checkoutData.status !== "paid") {
+          throw new Error('Payment not completed');
+        }
+
+        // Process order
+        const orderIdValue = checkoutData?.razorpayPaymentId || checkoutData?.id;
+        const orderRef = doc(db, `orders/${orderIdValue}`);
+        const orderExists = await getDoc(orderRef);
+        
+        if (!orderExists.exists()) {
+          await setDoc(orderRef, {
+            checkout: checkoutData,
+            uid: uid,
+            id: orderIdValue,
+            paymentMode: "prepaid",
+            status: "pending",
+            timestampCreate: Timestamp.now(),
+          });
+
+          // Update user cart and product counts
+          const productList = checkoutData?.line_items?.map((item) => ({
+            productId: item?.productId,
+            quantity: item?.quantity,
+          }));
+
+          const userRef = doc(db, `users/${uid}`);
+          const userDoc = await getDoc(userRef);
+          const productIdsList = productList?.map((item) => item?.productId);
+          const currentCarts = userDoc?.data()?.carts ?? [];
+          
+          const newCartList = currentCarts.filter((cartItem) => {
+            const cartProductId = cartItem?.id?.replace(/-ebook$/, "");
+            return !productIdsList.includes(cartProductId);
+          });
+
+          await updateDoc(userRef, { carts: newCartList });
+
+          // Update product order counts
+          for (const item of productList) {
+            if (item?.productId) {
+              const productRef = doc(db, `products/${item.productId}`);
+              await updateDoc(productRef, {
+                orders: increment(item?.quantity ?? 1)
+              });
+            }
+          }
+        }
+
+        setCheckout(checkoutData);
+        setOrderId(orderIdValue);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    processCheckout();
+  }, [checkout_id, uid]);
+
+  if (loading) {
+    return (
+      <main>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4"></div>
+            <p>Processing your order...</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
   }
-  
-  // Fetch checkout session directly using uid from URL
-  const checkout = await fetchCheckoutSession(checkout_id, uid);
 
-  const result = await processOrder({ checkout });
+  if (error) {
+    return (
+      <main>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold text-red-600 mb-4">Error</h1>
+            <p>{error}</p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
-  // Extract eBooks from the order with order info for secure download
-  const orderId = checkout?.paymentId || checkout?.id;
   const ebooks = checkout?.line_items?.filter(
     (item) => item?.format === "ebook" && item?.ebookUrl
   ).map((item) => ({
@@ -117,7 +147,6 @@ export default async function Page({ searchParams }) {
           <span className="font-bold text-green-600">Successfully</span> Placed
         </h1>
         
-        {/* eBook Downloads Section */}
         {ebooks.length > 0 && (
           <EbookDownloads ebooks={ebooks} orderId={orderId} uid={uid} />
         )}
