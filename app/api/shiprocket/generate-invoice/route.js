@@ -9,7 +9,7 @@ export async function POST(request) {
     }
 
     // Get Shiprocket token
-    const authResponse = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:3000'}/api/shiprocket/auth`, {
+    const authResponse = await fetch('/api/shiprocket/auth', {
       method: 'POST',
     });
     const { token } = await authResponse.json();
