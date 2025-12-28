@@ -1,5 +1,5 @@
 import { db } from "@/lib/firebase";
-import { collection, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, Timestamp, updateDoc, increment } from "firebase/firestore";
 
 export const createRazorpayOrder = async ({ uid, products, address, totalAmount, coupon, shippingCharge }) => {
   // Use passed totalAmount if provided, otherwise calculate
@@ -133,6 +133,26 @@ export const verifyRazorpayPayment = async ({
   // Get updated checkout data for notifications
   const checkoutDoc = await getDoc(ref);
   const checkoutData = checkoutDoc.data();
+
+  // Update coupon usage count if coupon was used
+  if (checkoutData?.coupon?.code) {
+    const couponRef = doc(db, `coupons/${checkoutData.coupon.code}`);
+    await updateDoc(couponRef, {
+      usedCount: increment(1)
+    });
+  }
+
+  // Update stock for physical products
+  if (checkoutData?.line_items) {
+    for (const item of checkoutData.line_items) {
+      if (item.format !== "ebook") {
+        const productRef = doc(db, `products/${item.productId}`);
+        await updateDoc(productRef, {
+          stock: increment(-item.quantity)
+        });
+      }
+    }
+  }
 
   // Send email notifications
   try {

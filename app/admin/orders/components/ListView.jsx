@@ -4,7 +4,7 @@ import { useAllOrders } from "@/lib/firestore/orders/read";
 import { useProducts } from "@/lib/firestore/products/read";
 import { deleteProduct } from "@/lib/firestore/products/write";
 import { useUser } from "@/lib/firestore/user/read";
-import { Avatar, Button, CircularProgress } from "@nextui-org/react";
+import { Avatar, Button, CircularProgress, Tabs, Tab } from "@nextui-org/react";
 import { Edit2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,12 +12,13 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function ListView() {
+  const [activeTab, setActiveTab] = useState("physical");
   const [pageLimit, setPageLimit] = useState(10);
   const [lastSnapDocList, setLastSnapDocList] = useState([]);
 
   useEffect(() => {
     setLastSnapDocList([]);
-  }, [pageLimit]);
+  }, [pageLimit, activeTab]);
 
   const {
     data: orders,
@@ -31,6 +32,18 @@ export default function ListView() {
         ? null
         : lastSnapDocList[lastSnapDocList?.length - 1],
   });
+
+  // Filter orders based on active tab
+  const filteredOrders = orders?.filter(order => {
+    const hasEbooks = order?.checkout?.hasEbooks;
+    const hasPhysical = order?.checkout?.hasPhysical;
+    
+    if (activeTab === "ebooks") {
+      return hasEbooks && !hasPhysical; // Only eBooks
+    } else {
+      return hasPhysical; // Physical books (including mixed orders)
+    }
+  }) || [];
 
   const handleNextPage = () => {
     let newStack = [...lastSnapDocList];
@@ -54,8 +67,18 @@ export default function ListView() {
   if (error) {
     return <div>{error}</div>;
   }
+  
   return (
     <div className="flex-1 flex flex-col gap-3 md:pr-5 md:px-0 px-5 rounded-xl w-full overflow-x-auto">
+      <Tabs 
+        selectedKey={activeTab} 
+        onSelectionChange={setActiveTab}
+        className="mb-4"
+      >
+        <Tab key="physical" title="Physical Orders" />
+        <Tab key="ebooks" title="eBook Orders" />
+      </Tabs>
+      
       <table className="border-separate border-spacing-y-3">
         <thead>
           <tr>
@@ -69,6 +92,12 @@ export default function ListView() {
               Total Price
             </th>
             <th className="font-semibold border-y bg-white px-3 py-2 text-left">
+              Coupon
+            </th>
+            <th className="font-semibold border-y bg-white px-3 py-2 text-left">
+              Final Amount
+            </th>
+            <th className="font-semibold border-y bg-white px-3 py-2 text-left">
               Total Products
             </th>
             <th className="font-semibold border-y bg-white px-3 py-2 text-left">
@@ -80,18 +109,25 @@ export default function ListView() {
             <th className="font-semibold border-y bg-white px-3 py-2 text-left">
               Status
             </th>
-            <th className="font-semibold border-y bg-white px-3 py-2 border-r rounded-r-lg text-center">
-              Actions
-            </th>
+            {activeTab === "physical" && (
+              <th className="font-semibold border-y bg-white px-3 py-2 border-r rounded-r-lg text-center">
+                Actions
+              </th>
+            )}
+            {activeTab === "ebooks" && (
+              <th className="font-semibold border-y bg-white px-3 py-2 border-r rounded-r-lg">
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
-          {orders?.map((item, index) => {
+          {filteredOrders?.map((item, index) => {
             return (
               <Row
                 index={index + lastSnapDocList?.length * pageLimit}
                 item={item}
                 key={item?.id}
+                showActions={activeTab === "physical"}
               />
             );
           })}
@@ -120,7 +156,7 @@ export default function ListView() {
           <option value={100}>100 Items</option>
         </select>
         <Button
-          isDisabled={isLoading || orders?.length === 0}
+          isDisabled={isLoading || filteredOrders?.length === 0}
           onClick={handleNextPage}
           size="sm"
           variant="bordered"
@@ -132,7 +168,7 @@ export default function ListView() {
   );
 }
 
-function Row({ item, index }) {
+function Row({ item, index, showActions }) {
   const [isDeleting, setIsDeleting] = useState(false);
   
   // Handle both old and new order structures
@@ -147,6 +183,10 @@ function Row({ item, index }) {
     }
     return prev;
   }, 0);
+  
+  const couponDiscount = item?.checkout?.coupon?.discount || 0;
+  const shippingCharge = item?.checkout?.shippingCharge || 0;
+  const finalAmount = totalAmount + shippingCharge - couponDiscount;
   
   // Check if order contains eBooks, physical books, or both
   const hasEbooks = item?.checkout?.line_items?.some(item => item?.format === "ebook");
@@ -170,6 +210,19 @@ function Row({ item, index }) {
       </td>
       <td className="border-y bg-white px-3 py-2  whitespace-nowrap">
         ₹ {totalAmount}
+      </td>
+      <td className="border-y bg-white px-3 py-2 whitespace-nowrap">
+        {item?.checkout?.coupon?.code ? (
+          <div className="flex flex-col">
+            <span className="text-xs font-mono">{item?.checkout?.coupon?.code}</span>
+            <span className="text-xs text-green-600">-₹{couponDiscount}</span>
+          </div>
+        ) : (
+          <span className="text-gray-400 text-xs">No coupon</span>
+        )}
+      </td>
+      <td className="border-y bg-white px-3 py-2 whitespace-nowrap">
+        ₹ {finalAmount}
       </td>
       <td className="border-y bg-white px-3 py-2">
         {item?.checkout?.line_items?.length}
@@ -202,15 +255,21 @@ function Row({ item, index }) {
           </h3>
         </div>
       </td>
-      <td className="border-y bg-white px-3 py-2 border-r rounded-r-lg">
-        <div className="flex">
-          <Link href={`/admin/orders/${item?.id}`}>
-            <button className="bg-black text-white px-3 py-2 rounded-lg text-xs">
-              View
-            </button>
-          </Link>
-        </div>
-      </td>
+      {showActions && (
+        <td className="border-y bg-white px-3 py-2 border-r rounded-r-lg">
+          <div className="flex">
+            <Link href={`/admin/orders/${item?.id}`}>
+              <button className="bg-black text-white px-3 py-2 rounded-lg text-xs">
+                View
+              </button>
+            </Link>
+          </div>
+        </td>
+      )}
+      {!showActions && (
+        <td className="border-y bg-white px-3 py-2 border-r rounded-r-lg">
+        </td>
+      )}
     </tr>
   );
 }
