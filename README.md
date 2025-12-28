@@ -144,7 +144,7 @@ service firebase.storage {
 
 ## Demo
 
-You can explore the demo of the e-commerce website at [this link](https://docs-reader-store.vercel.app). 
+You can explore the demo of the e-commerce website at [this link](https://www.score100.in). 
 
 To access the Admin Panel, use the following credentials:
 

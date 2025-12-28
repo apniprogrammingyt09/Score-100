@@ -83,7 +83,7 @@ export async function POST(request) {
                       </p>
                       
                       <div style="text-align: center; margin: 30px 0;">
-                        <a href="${process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app'}" 
+                        <a href="${process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in'}" 
                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                           Visit Our Store
                         </a>

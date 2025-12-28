@@ -25,6 +25,10 @@ export async function POST(request) {
       return prev;
     }, 0);
 
+    const couponDiscount = orderData.checkout?.coupon?.discount || 0;
+    const shippingCharge = orderData.checkout?.shippingCharge || 0;
+    const finalAmount = totalAmount + shippingCharge - couponDiscount;
+
     // Customer notification
     const customerMailOptions = {
       from: process.env.SMTP_EMAIL,
@@ -71,9 +75,24 @@ export async function POST(request) {
                       <span style="background-color: #28a745; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; text-transform: uppercase;">${orderData.paymentMode}</span>
                     </td>
                   </tr>
+                  ${orderData.checkout?.coupon ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Coupon Applied:</td>
+                    <td style="padding: 8px 0; color: #495057; text-align: right;">
+                      <span style="background-color: #dc3545; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">${orderData.checkout.coupon.code}</span>
+                      <div style="color: #28a745; font-weight: bold; margin-top: 2px;">-₹${couponDiscount} saved!</div>
+                    </td>
+                  </tr>
+                  ` : ''}
+                  ${shippingCharge > 0 ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Shipping:</td>
+                    <td style="padding: 8px 0; color: #495057; text-align: right;">₹${shippingCharge}</td>
+                  </tr>
+                  ` : ''}
                   <tr style="border-top: 1px solid #dee2e6;">
-                    <td style="padding: 12px 0; color: #495057; font-weight: bold; font-size: 18px;">Total Amount:</td>
-                    <td style="padding: 12px 0; color: #28a745; font-weight: bold; font-size: 20px; text-align: right;">₹${totalAmount}</td>
+                    <td style="padding: 12px 0; color: #495057; font-weight: bold; font-size: 18px;">Final Amount:</td>
+                    <td style="padding: 12px 0; color: #28a745; font-weight: bold; font-size: 20px; text-align: right;">₹${finalAmount}</td>
                   </tr>
                 </table>
               </div>
@@ -134,7 +153,10 @@ export async function POST(request) {
         <h3>Order Details:</h3>
         <p><strong>Order ID:</strong> ${orderData.id}</p>
         <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
-        <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+        <p><strong>Subtotal:</strong> ₹${totalAmount}</p>
+        ${orderData.checkout?.coupon ? `<p><strong>Coupon:</strong> ${orderData.checkout.coupon.code} (-₹${couponDiscount})</p>` : ''}
+        ${shippingCharge > 0 ? `<p><strong>Shipping:</strong> ₹${shippingCharge}</p>` : ''}
+        <p><strong>Final Amount:</strong> ₹${finalAmount}</p>
         <p><strong>Payment Mode:</strong> ${orderData.paymentMode}</p>
         
         <h3>Items Ordered:</h3>

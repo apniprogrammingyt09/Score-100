@@ -51,12 +51,12 @@ export default async function Home() {
     '@type': 'WebSite',
     name: 'Score 100 Books',
     description: 'Leading provider of question bank books for CBSE & MPBSE Board Exams',
-    url: process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app',
+    url: process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app'}/search?q={search_term_string}`
+        urlTemplate: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in'}/search?q={search_term_string}`
       },
       'query-input': 'required name=search_term_string'
     },
@@ -65,7 +65,7 @@ export default async function Home() {
       name: 'Score 100 Books',
       logo: {
         '@type': 'ImageObject',
-        url: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://docs-reader-store.vercel.app'}/logo.png`
+        url: `${process.env.NEXT_PUBLIC_DOMAIN || 'https://www.score100.in'}/logo.png`
       }
     }
   };
