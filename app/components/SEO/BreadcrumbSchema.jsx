@@ -1,6 +1,4 @@
-'use client';
-
-export default function BreadcrumbSchema({ items }) {
+export function BreadcrumbSchema({ items }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

@@ -3,28 +3,28 @@ import { Rating } from "@mui/material";
 export default function CustomerReviews() {
   const list = [
     {
-      name: "Rahul Sharma - Class 10",
+      name: "Vanshika Dixit Class-12",
       message:
-        "Score 100 books helped me score 95+ in my board exams! The PYQs and revision notes are amazing. Highly recommended for CBSE students.",
+        "Score 100 books helped me score 95+ in my board exams! The PYQs and revision notes are amazing. Highly recommended for MP Board students.",
       rating: 5,
       imageLink:
-        "https://img.freepik.com/premium-photo/confident-young-male-indian-student-standing-outside-university-campus-with-backpack-holding-notebook-looking-seriously-camera_321831-24316.jpg?semt=ais_hybrid&w=740&q=80",
+        "1.png",
     },
     {
-      name: "Priya Verma - Class 12",
+      name: "Bhavya Jain - Class 12",
       message:
-        "Best question bank for board preparation. The mindmaps and cheat sheets made revision so easy. Scored 98 in Mathematics!",
+        "Best question bank for board preparation. The mindmaps and cheat sheets made revision so easy. Scored 100 in Chemistry!",
       rating: 5,
       imageLink:
-        "https://media.istockphoto.com/id/1272815911/photo/young-indian-female-university-student-stock-photo.jpg?s=612x612&w=0&k=20&c=Iwdc08GR3pw8_Qg3_nabNJUQYTo52EU3dvW4tsth1tE=",
+        "2.jpeg",
     },
     {
-      name: "Amit Patel - Class 11",
+      name: "Deepanshu - Class 12",
       message:
         "Excellent collection of previous year papers with detailed solutions. The competency-based questions are very helpful.",
       rating: 4.5,
       imageLink:
-        "https://img.freepik.com/free-photo/handsome-young-indian-student-man-holding-notebooks-while-standing-street_231208-2771.jpg?semt=ais_hybrid&w=740&q=80",
+        "3.png",
     },
   ];
   return (

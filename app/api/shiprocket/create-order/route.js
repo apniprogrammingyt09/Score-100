@@ -5,7 +5,8 @@ export async function POST(request) {
     const orderData = await request.json();
 
     // Get Shiprocket token
-    const authResponse = await fetch('/api/shiprocket/auth', {
+    const baseUrl = process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:3000';
+    const authResponse = await fetch(`${baseUrl}/api/shiprocket/auth`, {
       method: 'POST',
     });
     const { token } = await authResponse.json();

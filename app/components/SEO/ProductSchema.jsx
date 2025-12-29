@@ -1,43 +1,33 @@
-'use client';
-
-export default function ProductSchema({ product }) {
+export function ProductSchema({ product }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
     description: product.shortDescription || product.description,
-    image: [product.featureImageURL, ...(product.imageList || [])],
+    image: product.featureImageURL,
     brand: {
       '@type': 'Brand',
-      name: 'Score 100 Books'
+      name: product.brand || 'Score 100'
     },
-    category: product.category || 'Educational Books',
+    category: product.category,
+    sku: product.id,
     offers: {
       '@type': 'Offer',
-      price: product.salePrice || product.price,
+      url: `https://www.score100.in/products/${product.id}`,
       priceCurrency: 'INR',
+      price: product.salePrice,
+      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
         name: 'Score 100 Books'
       }
     },
-    aggregateRating: product.rating ? {
+    aggregateRating: product.reviewsCount > 0 ? {
       '@type': 'AggregateRating',
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount || 1,
-      bestRating: 5,
-      worstRating: 1
-    } : undefined,
-    isbn: product.isbn,
-    author: product.author || 'Score 100 Books Team',
-    publisher: {
-      '@type': 'Organization',
-      name: 'Score 100 Books'
-    },
-    educationalLevel: product.class || 'Secondary Education',
-    learningResourceType: 'Question Bank',
-    educationalUse: 'Board Exam Preparation'
+      ratingValue: product.averageRating || 5,
+      reviewCount: product.reviewsCount || 1
+    } : undefined
   };
 
   return (
