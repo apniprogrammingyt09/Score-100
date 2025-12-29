@@ -10,14 +10,14 @@ export async function GET(request) {
     const filename = url.searchParams.get('filename') || 'ebook.pdf';
     const productId = url.searchParams.get('productId'); // For fallback lookup
     
-    // Legacy support - if old parameters are used, return error message
+    // Legacy support - if old parameters are used, provide helpful message
     const orderId = url.searchParams.get('orderId');
     const uid = url.searchParams.get('uid');
     
     if (!ebookUrl && (orderId || productId || uid)) {
       return NextResponse.json({ 
-        error: 'Please refresh the page to download your eBook',
-        legacy: true 
+        error: 'This download link has expired. Please go to your account page to download your eBooks.',
+        redirect: '/account'
       }, { status: 400 });
     }
 

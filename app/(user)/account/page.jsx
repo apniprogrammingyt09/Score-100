@@ -190,7 +190,7 @@ export default function Page() {
                       </div>
                       {isEbook && product?.ebookUrl && (
                         <a
-                          href={`/api/download-ebook?orderId=${item?.id}&productId=${product?.productId}&uid=${user?.uid}`}
+                          href={product?.ebookUrl ? `/api/download-ebook?url=${encodeURIComponent(product.ebookUrl)}&filename=${encodeURIComponent(product.name + '.pdf')}` : '#'}
                           className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white text-xs rounded-lg hover:bg-emerald-700 transition-colors"
                         >
                           <Download size={12} />
