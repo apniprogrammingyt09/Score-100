@@ -9,14 +9,24 @@ export async function POST(request) {
     }
 
     // Get Shiprocket token
-    const authResponse = await fetch('/api/shiprocket/auth', {
+    const authResponse = await fetch('https://apiv2.shiprocket.in/v1/external/auth/login', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: process.env.SHIPROCKET_EMAIL,
+        password: process.env.SHIPROCKET_PASSWORD,
+      }),
     });
-    const { token } = await authResponse.json();
 
-    if (!token) {
+    const authData = await authResponse.json();
+
+    if (!authResponse.ok || !authData.token) {
       throw new Error('Failed to authenticate with Shiprocket');
     }
+
+    const token = authData.token;
 
     // Generate invoice
     const response = await fetch('https://apiv2.shiprocket.in/v1/external/orders/print/invoice', {
