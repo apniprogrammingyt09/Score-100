@@ -137,7 +137,7 @@ function Row({ item, index, stats }) {
       </td>
       <td className="border-y bg-white px-3 py-2 text-center">
         <div className="flex justify-center">
-          <Avatar src={item?.photoURL} showFallback name={item?.displayName?.charAt(0) || 'U'} />
+          <Avatar src={item?.photoURL} showFallback name={item?.displayName?.charAt(0) || 'U'} aria-label={`${item?.displayName || 'User'} profile picture`} />
         </div>
       </td>
       <td className="border-y bg-white px-3 py-2">{item?.displayName || 'N/A'}</td>

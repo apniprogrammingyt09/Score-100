@@ -42,7 +42,7 @@ export default function Reviews({ productId }) {
           return (
             <div key={item?.id || index} className="flex gap-3">
               <div className="">
-                <Avatar src={item?.photoURL} />
+                <Avatar src={item?.photoURL} aria-label={`${item?.displayName || 'User'} profile picture`} />
               </div>
               <div className="flex-1 flex flex-col">
                 <div className="flex justify-between">

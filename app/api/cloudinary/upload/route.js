@@ -1,25 +1,22 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
 
-// Configure using CLOUDINARY_URL or individual vars
-if (process.env.CLOUDINARY_URL) {
-  cloudinary.config(process.env.CLOUDINARY_URL);
-} else {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request) {
   try {
-    // Debug: Check if env vars are loaded
-    console.log('Cloudinary config:', {
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET ? 'present' : 'missing'
-    });
+    // Check if all required env vars are present
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('Missing Cloudinary environment variables');
+      return NextResponse.json({ 
+        error: 'Cloudinary configuration missing' 
+      }, { status: 500 });
+    }
 
     const formData = await request.formData();
     const file = formData.get('file');
@@ -39,7 +36,7 @@ export async function POST(request) {
         },
         (error, result) => {
           if (error) {
-            console.error('Cloudinary error details:', error);
+            console.error('Cloudinary upload error:', error);
             reject(error);
           } else {
             resolve(result);
@@ -53,9 +50,9 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
+    console.error('Upload error:', error);
     return NextResponse.json({ 
-      error: error.message 
+      error: error.message || 'Upload failed'
     }, { status: 500 });
   }
 }

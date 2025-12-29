@@ -22,7 +22,7 @@ export default function Header({ toggleSidebar }) {
             <h1 className="text-sm font-semibold">{admin?.name}</h1>
             <h1 className="text-xs text-gray-600">{admin?.email}</h1>
           </div>
-          <Avatar size="sm" src={admin?.imageURL} />
+          <Avatar size="sm" src={admin?.imageURL} aria-label={`${admin?.name || 'Admin'} profile picture`} />
         </div>
       </div>
     </section>
