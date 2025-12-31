@@ -358,9 +358,8 @@ export default function BasicDetails({ data, handleData }) {
                         try {
                           const formData = new FormData();
                           formData.append("file", file);
-                          formData.append("productId", data?.id || "new");
 
-                          const response = await fetch("/api/cloudinary/upload", {
+                          const response = await fetch("/api/upload", {
                             method: "POST",
                             body: formData,
                           });

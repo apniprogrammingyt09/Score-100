@@ -34,7 +34,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Access denied: Invalid request source' }, { status: 403 });
     }
 
-    // If URL contains appwrite, try to redirect to Cloudinary version
+    // If URL contains appwrite, try to redirect to Vercel Blob version
     if (ebookUrl.includes('appwrite.io')) {
       return NextResponse.json({ 
         error: 'This eBook is being migrated to new storage. Please try again in a few minutes.',
@@ -42,7 +42,7 @@ export async function GET(request) {
       }, { status: 503 });
     }
 
-    // Fetch from Cloudinary URL
+    // Fetch from Vercel Blob URL
     const response = await fetch(ebookUrl);
     if (!response.ok) {
       return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });

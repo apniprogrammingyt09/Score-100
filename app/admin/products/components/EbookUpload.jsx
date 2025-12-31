@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@nextui-org/react';
 import { Upload, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export default function EbookUpload({ onUpload, currentUrl, onRemove }) {
   const [isUploading, setIsUploading] = useState(false);
@@ -25,8 +24,21 @@ export default function EbookUpload({ onUpload, currentUrl, onRemove }) {
 
     setIsUploading(true);
     try {
-      const result = await uploadToCloudinary(file, 'ebooks');
-      onUpload(result.secure_url);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+
+      const result = await response.json();
+      onUpload(result.url);
       toast.success('eBook uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
