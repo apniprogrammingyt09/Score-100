@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { searchProducts } from '@/lib/firestore/products/read_server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

@@ -10,6 +10,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
+    // Check if Blob token is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      // Fallback: Return a placeholder URL for now
+      return NextResponse.json({ 
+        error: 'Upload service temporarily unavailable. Please configure BLOB_READ_WRITE_TOKEN in Vercel environment variables.' 
+      }, { status: 503 });
+    }
+
     const blob = await put(file.name, file, {
       access: 'public',
     });
