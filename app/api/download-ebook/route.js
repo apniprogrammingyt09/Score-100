@@ -1,36 +1,54 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { getProduct } from '@/lib/firestore/products/read_server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
     const url = new URL(request.url);
-    let ebookUrl = url.searchParams.get('url');
+    const productId = url.searchParams.get('productId');
+    const legacyUrl = url.searchParams.get('url');
     const filename = url.searchParams.get('filename') || 'ebook.pdf';
-    const productId = url.searchParams.get('productId'); // For fallback lookup
     
-    // Legacy support - if old parameters are used, provide helpful message
-    const orderId = url.searchParams.get('orderId');
-    const uid = url.searchParams.get('uid');
+    // Handle legacy URL format
+    if (legacyUrl && !productId) {
+      const response = await fetch(legacyUrl);
+      if (!response.ok) {
+        return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
+      }
+      const fileBuffer = await response.arrayBuffer();
+      const cleanFilename = filename.replace(/[^a-zA-Z0-9\s]/g, '_');
+      
+      return new NextResponse(fileBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${cleanFilename}"`,
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
+        },
+      });
+    }
     
-    if (!ebookUrl && (orderId || productId || uid)) {
-      return NextResponse.json({ 
-        error: 'This download link has expired. Please go to your account page to download your eBooks.',
-        redirect: '/account'
-      }, { status: 400 });
+    if (!productId) {
+      return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
     }
 
-    if (!ebookUrl) {
-      return NextResponse.json({ error: 'Missing eBook URL' }, { status: 400 });
+    // Always fetch latest eBook URL from database
+    const product = await getProduct({ id: productId });
+    
+    if (!product || !product.ebookUrl) {
+      return NextResponse.json({ error: 'eBook not found' }, { status: 404 });
     }
 
-    // Additional security: Check referer to prevent direct access
+    const ebookUrl = product.ebookUrl;
+
+    // Additional security: Check referer to prevent direct access (skip in development)
     const headersList = headers();
     const referer = headersList.get('referer');
     const host = headersList.get('host');
     
-    if (!referer || !referer.includes(host)) {
+    // Skip referer check for localhost/development
+    if (referer && host && !host.includes('localhost') && !referer.includes(host)) {
       return NextResponse.json({ error: 'Access denied: Invalid request source' }, { status: 403 });
     }
 
@@ -42,10 +60,11 @@ export async function GET(request) {
       }, { status: 503 });
     }
 
-    // Fetch from Vercel Blob URL
+    // Fetch from stored Cloudinary URL
     const response = await fetch(ebookUrl);
     if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
+      console.error('Cloudinary fetch failed:', response.status, response.statusText);
+      return NextResponse.json({ error: 'Failed to fetch eBook from storage' }, { status: 500 });
     }
     const fileBuffer = await response.arrayBuffer();
     

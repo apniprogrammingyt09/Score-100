@@ -48,7 +48,7 @@ export default function EbookDownloads({ ebooks, orderId, uid }) {
                 <span className="text-xs text-emerald-600">PDF eBook</span>
               </div>
               <a
-                href={ebook.ebookUrl ? `/api/download-ebook?url=${encodeURIComponent(ebook.ebookUrl)}&filename=${encodeURIComponent(ebook.name + '.pdf')}` : '#'}
+                href={ebook.ebookUrl ? `/api/download-ebook?productId=${ebook.productId || ebook.id}&filename=${encodeURIComponent(ebook.name + '.pdf')}` : '#'}
                 className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
                   ebook.ebookUrl 
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700' 

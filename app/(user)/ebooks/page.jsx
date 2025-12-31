@@ -128,7 +128,7 @@ export default function Page() {
                 <div className="mt-3 flex items-center gap-3">
                   {ebook.ebookUrl ? (
                     <a
-                      href={ebook.ebookUrl ? `/api/download-ebook?url=${encodeURIComponent(ebook.ebookUrl)}&filename=${encodeURIComponent(ebook.name + '.pdf')}` : '#'}
+                      href={ebook.productId ? `/api/download-ebook?productId=${ebook.productId}&filename=${encodeURIComponent(ebook.name + '.pdf')}` : '#'}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                     >
                       <Download size={18} />
