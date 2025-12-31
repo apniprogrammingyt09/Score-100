@@ -37,8 +37,18 @@ export async function GET(request) {
     // Always fetch latest eBook URL from database
     const product = await getProduct({ id: productId });
     
-    if (!product || !product.ebookUrl) {
-      return NextResponse.json({ error: 'eBook not found' }, { status: 404 });
+    console.log('Product data:', { id: productId, hasEbook: product?.hasEbook, ebookUrl: product?.ebookUrl });
+    
+    if (!product || !product.ebookUrl || product.ebookUrl.trim() === '') {
+      return NextResponse.json({ 
+        error: 'eBook not found or not uploaded yet', 
+        debug: { 
+          productExists: !!product, 
+          hasEbookUrl: !!product?.ebookUrl && product.ebookUrl.trim() !== '',
+          hasEbook: product?.hasEbook,
+          ebookUrlValue: product?.ebookUrl || 'null'
+        } 
+      }, { status: 404 });
     }
 
     const ebookUrl = product.ebookUrl;

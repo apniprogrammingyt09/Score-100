@@ -356,11 +356,19 @@ export default function BasicDetails({ data, handleData }) {
 
                         setIsUploadingEbook(true);
                         try {
+                          console.log('Starting ebook upload:', file.name, file.size);
                           const { uploadToCloudinaryDirect } = await import('@/lib/cloudinary-direct');
                           const result = await uploadToCloudinaryDirect(file);
+                          console.log('Upload result:', result);
+                          
+                          if (!result.secure_url) {
+                            throw new Error('Upload completed but no URL received');
+                          }
+                          
                           handleData("ebookUrl", result.secure_url);
                           toast.success("eBook uploaded successfully!");
                         } catch (error) {
+                          console.error('Upload error:', error);
                           toast.error(error.message || "Failed to upload eBook");
                         } finally {
                           setIsUploadingEbook(false);
