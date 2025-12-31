@@ -24,21 +24,9 @@ export default function EbookUpload({ onUpload, currentUrl, onRemove }) {
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Upload failed');
-      }
-
-      const result = await response.json();
-      onUpload(result.url);
+      const { uploadToCloudinaryDirect } = await import('@/lib/cloudinary-direct');
+      const result = await uploadToCloudinaryDirect(file);
+      onUpload(result.secure_url);
       toast.success('eBook uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);

@@ -356,21 +356,9 @@ export default function BasicDetails({ data, handleData }) {
 
                         setIsUploadingEbook(true);
                         try {
-                          const formData = new FormData();
-                          formData.append("file", file);
-
-                          const response = await fetch("/api/upload", {
-                            method: "POST",
-                            body: formData,
-                          });
-
-                          if (!response.ok) {
-                            const error = await response.json();
-                            throw new Error(error.error || "Upload failed");
-                          }
-
-                          const result = await response.json();
-                          handleData("ebookUrl", result.url);
+                          const { uploadToCloudinaryDirect } = await import('@/lib/cloudinary-direct');
+                          const result = await uploadToCloudinaryDirect(file);
+                          handleData("ebookUrl", result.secure_url);
                           toast.success("eBook uploaded successfully!");
                         } catch (error) {
                           toast.error(error.message || "Failed to upload eBook");
