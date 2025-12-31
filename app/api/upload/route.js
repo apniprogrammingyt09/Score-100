@@ -1,8 +1,15 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { v2 as cloudinary } from 'cloudinary';
 
 export async function POST(request) {
   try {
+    // Configure Cloudinary for this request
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
     const formData = await request.formData();
     const file = formData.get('file');
     
@@ -10,21 +17,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Check if Blob token is configured
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      // Fallback: Return a placeholder URL for now
-      return NextResponse.json({ 
-        error: 'Upload service temporarily unavailable. Please configure BLOB_READ_WRITE_TOKEN in Vercel environment variables.' 
-      }, { status: 503 });
-    }
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const blob = await put(file.name, file, {
-      access: 'public',
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',
+          folder: 'ebooks',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(buffer);
     });
 
     return NextResponse.json({ 
-      url: blob.url,
-      downloadUrl: blob.downloadUrl 
+      url: result.secure_url
     });
 
   } catch (error) {
