@@ -18,12 +18,13 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Failed to fetch eBook' }, { status: 500 });
       }
       const fileBuffer = await response.arrayBuffer();
-      const cleanFilename = filename.replace(/[^a-zA-Z0-9\s]/g, '_');
+      const cleanFilename = filename.replace(/[^a-zA-Z0-9\s\.]/g, '_');
+    const finalFilename = cleanFilename.endsWith('.pdf') ? cleanFilename : cleanFilename + '.pdf';
       
       return new NextResponse(fileBuffer, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${cleanFilename}"`,
+          'Content-Disposition': `attachment; filename="${finalFilename}"`,
           'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
         },
       });
@@ -68,13 +69,14 @@ export async function GET(request) {
     }
     const fileBuffer = await response.arrayBuffer();
     
-    const cleanFilename = filename.replace(/[^a-zA-Z0-9\s]/g, '_');
+    const cleanFilename = filename.replace(/[^a-zA-Z0-9\s\.]/g, '_');
+    const finalFilename = cleanFilename.endsWith('.pdf') ? cleanFilename : cleanFilename + '.pdf';
 
     // Return the file with strict security headers
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${cleanFilename}"`,
+        'Content-Disposition': `attachment; filename="${finalFilename}"`,
         'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
         'Expires': '0',
